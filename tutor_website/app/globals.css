@@ -13,8 +13,13 @@
   --font-body: var(--font-inter), sans-serif;
 }
 
+html {
+  background-color: #F3F1ED;
+}
+
 body {
-  background-color: var(--color-paper);
+  min-height: 100vh;
+  background-color: #F3F1ED;
   color: var(--color-ink);
   font-family: var(--font-body);
 }

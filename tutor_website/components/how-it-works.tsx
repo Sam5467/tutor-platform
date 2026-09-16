@@ -5,7 +5,7 @@ export function HowItWorks() {
         Three steps between you and a course you understand.
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-stone">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-stone border border-ink/15 rounded-lg overflow-hidden">
         <div className="bg-paper p-8 flex flex-col gap-3">
           <span className="font-display text-2xl text-brass">Search</span>
           <p className="text-slate leading-relaxed">

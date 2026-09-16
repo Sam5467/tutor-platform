@@ -1,55 +1,68 @@
 import Link from "next/link";
+import type { Tutor } from "@/lib/mock-data";
+import { facultyCardColors } from "@/lib/faculty-card-colors";
 
-type TutorCardProps = {
-  id: string;
-  name: string;
-  major: string;
-  year: string;
-  courses: string[];
-  pricePerSession: number;
-  rating: number | null;
-  reviewCount: number;
-};
+type TutorCardProps = Tutor;
 
 export function TutorCard({
   id,
   name,
-  major,
+  faculty,
   year,
   courses,
   pricePerSession,
   rating,
   reviewCount,
+  photoUrl,
 }: TutorCardProps) {
   const shownCourses = courses.slice(0, 3);
   const extraCount = courses.length - shownCourses.length;
+  const colors = facultyCardColors[faculty] ?? { bg: "bg-paper", text: "text-ink" };
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 
   return (
     <Link
       href={`/tutors/${id}`}
-      className="hairline-divider flex items-center justify-between gap-6 py-6 group"
+      className={`flex flex-col gap-3 rounded-lg p-4 hover:opacity-90 transition-opacity ${colors.bg}`}
     >
-      <div>
-        <p className="font-display text-xl text-ink group-hover:text-brass transition-colors">
-          {name}
-        </p>
-        <p className="text-slate text-sm mt-1">
-          {major}, {year}
-        </p>
-        <p className="text-slate text-sm mt-1">
-          {shownCourses.join(", ")}
-          {extraCount > 0 && ` +${extraCount} more`}
-        </p>
-        {rating !== null && (
-          <p className="text-slate text-sm mt-1">
-            {rating.toFixed(1)} ({reviewCount} review{reviewCount === 1 ? "" : "s"})
-          </p>
+      <div className="flex items-center gap-3">
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt={name}
+            className="w-12 h-12 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-stone flex items-center justify-center text-ink font-display text-sm">
+            {initials}
+          </div>
         )}
+        <div>
+          <p className={`font-display text-base leading-tight ${colors.text}`}>{name}</p>
+          <p className={`text-xs ${colors.text} opacity-70`}>{year}</p>
+        </div>
       </div>
 
-      <span className="shrink-0 rounded-full border border-brass px-4 py-1.5 text-sm text-brass">
-        ${pricePerSession}/session
-      </span>
+      <p className={`text-sm ${colors.text} opacity-80`}>
+        {shownCourses.join(", ")}
+        {extraCount > 0 && ` +${extraCount} more`}
+      </p>
+
+      {rating !== null && (
+        <p className={`text-xs ${colors.text} opacity-70`}>
+          {rating.toFixed(1)} ({reviewCount} review{reviewCount === 1 ? "" : "s"})
+        </p>
+      )}
+
+      <div className={`mt-auto pt-3 border-t ${colors.text === "text-paper" ? "border-paper/20" : "border-ink/20"}`}>
+        <span className={`text-sm font-semibold ${colors.text}`}>
+          ${pricePerSession}/session
+        </span>
+      </div>
     </Link>
   );
 }

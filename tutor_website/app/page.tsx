@@ -1,34 +1,41 @@
 import Link from "next/link";
-import ShapeHero from "@/components/kokonutui/shape-hero"; // installed via shadcn CLI in setup
+import ShapeHero from "@/components/kokonutui/shape-hero";
 import { HowItWorks } from "@/components/how-it-works";
-import { TutorSpotlight } from "@/components/tutor-spotlight";
+import { FaqPreview } from "@/components/faq-preview";
 import { Footer } from "@/components/footer";
 
 export default function Home() {
   return (
     <main>
-      <ShapeHero
-        title1="Find a tutor for"
-        title2="your course"
-      />
+      <div className="bg-ink pb-12">
+        <ShapeHero
+          title1="Find a tutor for"
+          title2="your course"
+        />
 
-      <div className="flex gap-4 justify-center mt-8">
-        <Link
-          href="/tutors"
-          className="rounded-full bg-ink text-paper px-6 py-3 text-sm font-medium"
-        >
-          Find a tutor
-        </Link>
-        <Link
-          href="/become-a-tutor"
-          className="rounded-full border border-ink px-6 py-3 text-sm font-medium"
-        >
-          Become a tutor
-        </Link>
+        <div className="flex gap-4 justify-center text-paper">
+          <Link
+            href="/tutors"
+            className="rounded-full bg-brass text-ink px-10 py-4 text-base font-medium"
+          >
+            Find a tutor
+          </Link>
+          <Link
+            href="/become-a-tutor"
+            className="rounded-full border border-brass text-paper px-10 py-4 text-base font-medium"
+          >
+            Become a tutor
+          </Link>
+        </div>
       </div>
 
       <HowItWorks />
-      <TutorSpotlight />
+
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-4 border-black" />
+      </div>
+
+      <FaqPreview />
       <Footer />
     </main>
   );
