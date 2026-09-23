@@ -32,7 +32,7 @@ export function FaqPreview() {
   return (
     <section className="mx-auto max-w-3xl px-6 py-24">
       <h2 className="font-display text-3xl md:text-4xl text-ink mb-12 max-w-md">
-        Common questions.
+        FAQ
       </h2>
       <div className="flex flex-col">
         {faqs.map((faq, i) => {
