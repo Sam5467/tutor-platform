@@ -125,14 +125,9 @@ export default function ShapeHero({
 
       <div className="container relative z-10 mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-3xl text-center">
-          <motion.div
-            animate="visible"
-            custom={1}
-            initial="hidden"
-            variants={fadeUpVariants as any}
-          >
-            <h1 className="mb-6 font-bold text-4xl tracking-tight sm:text-6xl md:mb-8 md:text-8xl">
-              <span className="font-display bg-linear-to-b from-paper to-paper/80 bg-clip-text text-transparent dark:from-paper dark:to-paper/80">
+          <div>
+            <h1 className="mb-6 font-bold text-5xl tracking-tight sm:text-6xl md:mb-8 md:text-8xl">
+              <span className="font-display text-paper">
                 {title1}
               </span>
               <br />
@@ -142,17 +137,12 @@ export default function ShapeHero({
                 {title2}
               </span>
             </h1>
-          </motion.div>
-          <motion.div
-            animate="visible"
-            custom={2}
-            initial="hidden"
-            variants={fadeUpVariants as any}
-          >
+          </div>
+          <div>
             <p className="mx-auto mb-8 max-w-xl px-4 font-light text-base text-paper/70 leading-relaxed tracking-wide sm:text-lg md:text-xl">
               Your safe place to get back on track.
             </p>
-          </motion.div>
+          </div>
         </div>
       </div>
 
