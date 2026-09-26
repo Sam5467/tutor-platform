@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 function LoginForm() {
   const router = useRouter();
@@ -10,17 +11,28 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    // TODO: replace with real Auth.js (NextAuth) credentials sign-in once
-    // the database is wired up. For now, any submitted credentials are
-    // accepted and a mock session cookie is set.
-    console.log("Login attempted:", { email });
-    document.cookie = `usek_logged_in=true; path=/; max-age=${60 * 60 * 24 * 7}`;
+    const supabase = createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (signInError) {
+      setError("Incorrect email or password.");
+      return;
+    }
+
     router.push(searchParams.get("next") ?? "/tutors");
+    router.refresh();
   };
 
   return (
@@ -56,9 +68,10 @@ function LoginForm() {
 
         <button
           type="submit"
-          className="rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium mt-2"
+          disabled={loading}
+          className="rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium mt-2 disabled:opacity-60"
         >
-          Log in
+          {loading ? "Logging in..." : "Log in"}
         </button>
 
         <p className="text-sm text-slate text-center">

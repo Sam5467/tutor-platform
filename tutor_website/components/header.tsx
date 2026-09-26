@@ -1,9 +1,11 @@
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { HeaderShell } from "@/components/header-shell";
 
 export async function Header() {
-  const cookieStore = await cookies();
-  const isLoggedIn = cookieStore.get("usek_logged_in")?.value === "true";
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  return <HeaderShell isLoggedIn={isLoggedIn} />;
+  return <HeaderShell isLoggedIn={!!user} />;
 }

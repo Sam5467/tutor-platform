@@ -11,16 +11,15 @@ export function ContactButton({ tutorId, phone }: ContactButtonProps) {
   const [contacted, setContacted] = useState(false);
 
   const handleContact = () => {
-    // TODO: replace with real contact-request tracking (DB write) once backend exists.
-    // This is what makes the student eligible to leave a review later.
+    // TODO: replace with real contact-request tracking (DB write) once
+    // /tutors and /tutors/[id] are migrated off mock data onto real
+    // Supabase tutor records with real IDs.
     console.log(`Contact request sent: tutorId=${tutorId}`);
     setContacted(true);
   };
 
   return (
     <div className="flex flex-col gap-3 border border-stone rounded-lg p-4">
-      <p className="text-sm text-slate">Phone / WhatsApp</p>
-      <p className="text-ink font-medium">+{phone}</p>
       
       <a
         href={`https://wa.me/${phone}`}

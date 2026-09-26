@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function StudentSignupPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -20,11 +24,22 @@ export default function StudentSignupPage() {
       return;
     }
 
-    // TODO: replace with real Auth.js (NextAuth) credentials signup once
-    // the database is wired up. Should hash the password server-side and
-    // create a Student record, then establish a session.
-    console.log("Student signup submitted:", { name, email });
-    document.cookie = `usek_logged_in=true; path=/; max-age=${60 * 60 * 24 * 7}`;
+    setLoading(true);
+    const supabase = createClient();
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name },
+      },
+    });
+
+    setLoading(false);
+
+    if (signUpError) {
+      setError(signUpError.message);
+      return;
+    }
 
     setSubmitted(true);
   };
@@ -38,12 +53,12 @@ export default function StudentSignupPage() {
         <p className="text-slate">
           You can now browse tutors and start contacting them.
         </p>
-        <Link
-          href="/tutors"
+        <button
+          onClick={() => router.push("/tutors")}
           className="inline-block mt-6 rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium"
         >
           Find a tutor
-        </Link>
+        </button>
       </div>
     );
   }
@@ -106,9 +121,10 @@ export default function StudentSignupPage() {
 
         <button
           type="submit"
-          className="rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium mt-2"
+          disabled={loading}
+          className="rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium mt-2 disabled:opacity-60"
         >
-          Create account
+          {loading ? "Creating account..." : "Create account"}
         </button>
 
         <p className="text-sm text-slate text-center">
