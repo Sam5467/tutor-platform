@@ -204,25 +204,49 @@ export default function BecomeATutorPage() {
           <label className="text-sm text-slate">
             Transcript (proof of GPA) — PDF or image
           </label>
-          <input
-            type="file"
-            required
-            accept=".pdf,image/*"
-            onChange={(e) => setTranscriptFile(e.target.files?.[0] ?? null)}
-            className="text-ink text-sm"
-          />
+          <div className="flex items-center gap-3">
+            <label
+              htmlFor="transcript-upload"
+              className="cursor-pointer rounded-full bg-ink text-paper px-5 py-2 text-sm font-medium"
+            >
+              Choose file
+            </label>
+            <input
+              id="transcript-upload"
+              type="file"
+              required
+              accept=".pdf,image/*"
+              onChange={(e) => setTranscriptFile(e.target.files?.[0] ?? null)}
+              className="hidden"
+            />
+            <span className="text-sm text-slate">
+              {transcriptFile ? transcriptFile.name : "No file chosen"}
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">
             Profile picture (optional)
           </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoChange}
-            className="text-ink text-sm"
-          />
+          <div className="flex items-center gap-3">
+            <label
+              htmlFor="photo-upload"
+              className="cursor-pointer rounded-full bg-ink text-paper px-5 py-2 text-sm font-medium"
+            >
+              Choose file
+            </label>
+            <input
+              id="photo-upload"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="hidden"
+            />
+            <span className="text-sm text-slate">
+              {photoFile ? photoFile.name : "No file chosen"}
+            </span>
+          </div>
           {photoPreview && (
             <img
               src={photoPreview}
