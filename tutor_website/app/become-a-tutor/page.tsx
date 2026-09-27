@@ -5,6 +5,7 @@ import { faculties } from "@/lib/faculties";
 
 export default function BecomeATutorPage() {
   const [faculty, setFaculty] = useState("");
+  const [subFaculty, setSubFaculty] = useState("");
   const [major, setMajor] = useState("");
   const [name, setName] = useState("");
   const [year, setYear] = useState("Senior");
@@ -18,7 +19,12 @@ export default function BecomeATutorPage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const majors = faculties.find((f) => f.name === faculty)?.majors ?? [];
+  const facultyData = faculties.find((f) => f.name === faculty);
+  const subFaculties = facultyData?.subFaculties ?? [];
+  const effectiveSubFaculty =
+    subFaculties.length === 1 ? subFaculties[0].name : subFaculty;
+  const majors =
+    subFaculties.find((s) => s.name === effectiveSubFaculty)?.majors ?? [];
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -89,6 +95,7 @@ export default function BecomeATutorPage() {
             value={faculty}
             onChange={(e) => {
               setFaculty(e.target.value);
+              setSubFaculty("");
               setMajor("");
             }}
             className="border border-stone rounded-lg py-2 px-4 text-ink"
@@ -103,6 +110,31 @@ export default function BecomeATutorPage() {
             ))}
           </select>
         </div>
+
+        {subFaculties.length > 1 && (
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-slate">Area</label>
+            <select
+              required
+              disabled={!faculty}
+              value={subFaculty}
+              onChange={(e) => {
+                setSubFaculty(e.target.value);
+                setMajor("");
+              }}
+              className="border border-ink/15 rounded-lg py-2 px-4 text-ink disabled:opacity-50"
+            >
+              <option value="" disabled>
+                Select area
+              </option>
+              {subFaculties.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">Major</label>

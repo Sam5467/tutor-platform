@@ -22,7 +22,7 @@ export function FacultyPicker({ onSelect }: FacultyPickerProps) {
         />
 
         <div className="max-w-xl mx-auto">
-          <p className="text-slate text-sm text-center mb-2">Step 1 of 3</p>
+          <p className="text-slate text-sm text-center mb-2">Step 1</p>
           <h1 className="font-display text-2xl text-ink text-center mb-8">
             Which faculty is your course in?
           </h1>

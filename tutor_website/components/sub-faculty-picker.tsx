@@ -1,62 +1,51 @@
 import { faculties } from "@/lib/faculties";
 import { Footer } from "@/components/footer";
-import { BookOpen } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 
-type MajorPickerProps = {
+type SubFacultyPickerProps = {
   faculty: string;
-  subFaculty: string;
-  step: number;
-  totalSteps: number;
-  onSelect: (major: string) => void;
+  onSelect: (subFaculty: string) => void;
   onBack: () => void;
 };
 
-export function MajorPicker({
+export function SubFacultyPicker({
   faculty,
-  subFaculty,
-  step,
-  totalSteps,
   onSelect,
   onBack,
-}: MajorPickerProps) {
+}: SubFacultyPickerProps) {
   const facultyData = faculties.find((f) => f.name === faculty);
-  const subFacultyData = facultyData?.subFaculties.find(
-    (s) => s.name === subFaculty
-  );
-  const majors = subFacultyData?.majors ?? [];
+  const subFaculties = facultyData?.subFaculties ?? [];
 
   return (
     <div>
       <div className="relative max-w-5xl mx-auto py-16 px-4">
-        <BookOpen
+        <GraduationCap
           className="hidden lg:block absolute left-8 top-1/2 -translate-y-1/2 text-stone"
           size={140}
           strokeWidth={1}
         />
-        <BookOpen
+        <GraduationCap
           className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 text-stone"
           size={140}
           strokeWidth={1}
         />
 
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-xl mx-auto">
           <button onClick={onBack} className="text-slate text-sm mb-6">
-            ← Back
+            ← Back to faculties
           </button>
-          <p className="text-slate text-sm text-center mb-2">
-            Step {step} of {totalSteps}
-          </p>
+          <p className="text-slate text-sm text-center mb-2">Step 2 of 3</p>
           <h1 className="font-display text-2xl text-ink text-center mb-8">
-            Which major?
+            Which area within {faculty}?
           </h1>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {majors.map((major) => (
+          <div className="flex flex-col gap-3">
+            {subFaculties.map((sub) => (
               <button
-                key={major}
-                onClick={() => onSelect(major)}
+                key={sub.name}
+                onClick={() => onSelect(sub.name)}
                 className="rounded-full py-3 px-6 text-left font-medium border border-stone text-ink hover:border-brass transition-colors"
               >
-                {major}
+                {sub.name}
               </button>
             ))}
           </div>
