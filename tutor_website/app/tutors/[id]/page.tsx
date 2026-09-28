@@ -1,21 +1,38 @@
 import { notFound } from "next/navigation";
-import { mockTutors } from "@/lib/mock-data";
-import { mockReviews } from "@/lib/mock-reviews";
+import { createClient } from "@/lib/supabase/server";
+import { TUTOR_COLUMNS, rowToTutor, type TutorRow } from "@/lib/tutors";
 import { ContactButton } from "@/components/contact-button";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
 
+type Review = {
+  id: string;
+  studentName: string;
+  rating: number;
+  comment: string;
+};
+
 export default async function TutorProfilePage({ params }: PageProps) {
   const { id } = await params;
-  const tutor = mockTutors.find((t) => t.id === id);
+  const supabase = await createClient();
 
-  if (!tutor) {
+  const { data } = await supabase
+    .from("tutors")
+    .select(TUTOR_COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!data) {
     notFound();
   }
 
-  const reviews = mockReviews.filter((r) => r.tutorId === id);
+  const tutor = rowToTutor(data as TutorRow);
+
+  // Reviews aren't wired to the database yet.
+  const reviews: Review[] = [];
+
   const initials = tutor.name
     .split(" ")
     .map((part) => part[0])

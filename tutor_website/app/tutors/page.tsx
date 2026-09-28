@@ -1,17 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FacultyPicker } from "@/components/faculty-picker";
 import { SubFacultyPicker } from "@/components/sub-faculty-picker";
 import { MajorPicker } from "@/components/major-picker";
 import { TutorGrid } from "@/components/tutor-grid";
-import { mockTutors } from "@/lib/mock-data";
 import { faculties } from "@/lib/faculties";
+import { createClient } from "@/lib/supabase/client";
+import {
+  TUTOR_COLUMNS,
+  rowToTutor,
+  type Tutor,
+  type TutorRow,
+} from "@/lib/tutors";
 
 export default function TutorsPage() {
   const [faculty, setFaculty] = useState<string | null>(null);
   const [subFaculty, setSubFaculty] = useState<string | null>(null);
   const [major, setMajor] = useState<string | null>(null);
+  const [tutors, setTutors] = useState<Tutor[] | null>(null);
+  const [fetchError, setFetchError] = useState("");
+
+  useEffect(() => {
+    if (!faculty || !major) return;
+    const selectedFaculty = faculty;
+    const selectedMajor = major;
+
+    async function loadTutors() {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("tutors")
+        .select(TUTOR_COLUMNS)
+        .eq("status", "approved")
+        .eq("faculty", selectedFaculty)
+        .eq("major", selectedMajor)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        setFetchError(error.message);
+        setTutors([]);
+        return;
+      }
+      setFetchError("");
+      setTutors((data as TutorRow[]).map(rowToTutor));
+    }
+
+    loadTutors();
+  }, [faculty, major]);
 
   const facultyData = faculty
     ? faculties.find((f) => f.name === faculty)
@@ -23,10 +58,9 @@ export default function TutorsPage() {
     return <FacultyPicker onSelect={setFaculty} />;
   }
 
-  // Faculties with only one sub-faculty skip the sub-faculty screen entirely,
-  // but we still need to know that single sub-faculty's name to look up majors.
   const effectiveSubFaculty =
-    subFaculty ?? (!needsSubFacultyStep ? facultyData?.subFaculties[0]?.name ?? null : null);
+    subFaculty ??
+    (!needsSubFacultyStep ? facultyData?.subFaculties[0]?.name ?? null : null);
 
   if (needsSubFacultyStep && !subFaculty) {
     return (
@@ -45,7 +79,10 @@ export default function TutorsPage() {
         subFaculty={effectiveSubFaculty!}
         step={needsSubFacultyStep ? 3 : 2}
         totalSteps={totalSteps}
-        onSelect={setMajor}
+        onSelect={(m) => {
+          setTutors(null);
+          setMajor(m);
+        }}
         onBack={() => {
           if (needsSubFacultyStep) {
             setSubFaculty(null);
@@ -57,16 +94,26 @@ export default function TutorsPage() {
     );
   }
 
-  const tutors = mockTutors.filter(
-    (t) => t.faculty === faculty && t.major === major
-  );
+  if (tutors === null) {
+    return (
+      <div className="max-w-6xl mx-auto py-16 px-4">
+        <p className="text-slate text-center">Loading tutors...</p>
+      </div>
+    );
+  }
 
   return (
-    <TutorGrid
-      tutors={tutors}
-      onBack={() => {
-        setMajor(null);
-      }}
-    />
+    <>
+      {fetchError && (
+        <p className="text-sm text-red-600 text-center pt-8">{fetchError}</p>
+      )}
+      <TutorGrid
+        tutors={tutors}
+        onBack={() => {
+          setTutors(null);
+          setMajor(null);
+        }}
+      />
+    </>
   );
 }

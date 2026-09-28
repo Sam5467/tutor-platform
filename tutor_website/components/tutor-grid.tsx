@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TutorCard } from "@/components/tutor-card";
-import type { Tutor } from "@/lib/mock-data";
+import type { Tutor } from "@/lib/tutors";
 
 type TutorGridProps = {
   tutors: Tutor[];

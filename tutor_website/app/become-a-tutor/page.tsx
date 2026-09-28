@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { faculties } from "@/lib/faculties";
+import { createClient } from "@/lib/supabase/client";
 
 export default function BecomeATutorPage() {
   const [faculty, setFaculty] = useState("");
@@ -18,6 +19,31 @@ export default function BecomeATutorPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [checkingExisting, setCheckingExisting] = useState(true);
+  const [existingStatus, setExistingStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function checkExisting() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data } = await supabase
+          .from("tutors")
+          .select("status")
+          .eq("student_id", user.id)
+          .maybeSingle();
+        setExistingStatus(data?.status ?? null);
+      }
+      setCheckingExisting(false);
+    }
+
+    checkExisting();
+  }, []);
 
   const facultyData = faculties.find((f) => f.name === faculty);
   const subFaculties = facultyData?.subFaculties ?? [];
@@ -32,29 +58,79 @@ export default function BecomeATutorPage() {
     setPhotoPreview(file ? URL.createObjectURL(file) : null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    // TODO: replace with real submission once backend/storage exist.
-    // Should create a Tutor record with status: "pending", upload transcriptFile
-    // and photoFile to storage, and notify admin for manual GPA/transcript review.
-    console.log("Tutor signup submitted:", {
-      name,
+    const supabase = createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setError("You must be logged in to apply as a tutor.");
+      setLoading(false);
+      return;
+    }
+
+    // NOTE: transcriptFile and photoFile are selected in the form but not
+    // uploaded yet — real file storage is a separate step we're doing later.
+    const { error: insertError } = await supabase.from("tutors").insert({
+      student_id: user.id,
+      full_name: name,
       faculty,
       major,
       year,
-      courses: courses.split(",").map((c) => c.trim()).filter(Boolean),
-      price,
+      courses,
+      price: Number(price),
       bio,
       phone,
-      gpa,
-      transcriptFileName: transcriptFile?.name ?? null,
-      photoFileName: photoFile?.name ?? null,
-      status: "pending",
+      gpa: Number(gpa),
     });
+
+    setLoading(false);
+
+    if (insertError) {
+      setError(
+        insertError.code === "23505"
+          ? "You've already applied to be a tutor."
+          : insertError.message
+      );
+      return;
+    }
 
     setSubmitted(true);
   };
+
+  if (checkingExisting) {
+    return (
+      <div className="max-w-lg mx-auto py-24 px-4 text-center">
+        <p className="text-slate">Loading...</p>
+      </div>
+    );
+  }
+
+  if (existingStatus && !submitted) {
+    const messages: Record<string, string> = {
+      pending:
+        "Your application is under review. We'll reach out once it's been checked.",
+      approved: "Your tutor listing is approved and live on the site.",
+      rejected:
+        "Your application wasn't approved. Please contact us if you think this is a mistake.",
+    };
+    return (
+      <div className="max-w-lg mx-auto py-24 px-4 text-center">
+        <h1 className="font-display text-2xl text-ink mb-4">
+          You've already applied
+        </h1>
+        <p className="text-slate">
+          {messages[existingStatus] ?? "Your application has been received."}
+        </p>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -255,6 +331,9 @@ export default function BecomeATutorPage() {
               {transcriptFile ? transcriptFile.name : "No file chosen"}
             </span>
           </div>
+          <p className="text-xs text-slate mt-1">
+            File upload isn't wired up yet — this is just a placeholder for now.
+          </p>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -288,11 +367,14 @@ export default function BecomeATutorPage() {
           )}
         </div>
 
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
         <button
           type="submit"
-          className="rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium mt-4"
+          disabled={loading}
+          className="rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium mt-4 disabled:opacity-60"
         >
-          Submit for review
+          {loading ? "Submitting..." : "Submit for review"}
         </button>
       </form>
     </div>

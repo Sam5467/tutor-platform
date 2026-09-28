@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Tutor } from "@/lib/mock-data";
+import type { Tutor } from "@/lib/tutors";
 import { facultyCardColors } from "@/lib/faculty-card-colors";
 
 type TutorCardProps = Tutor;
