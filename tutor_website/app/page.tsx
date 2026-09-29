@@ -3,8 +3,25 @@ import ShapeHero from "@/components/kokonutui/shape-hero";
 import { HowItWorks } from "@/components/how-it-works";
 import { FaqPreview } from "@/components/faq-preview";
 import { Footer } from "@/components/footer";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let isApprovedTutor = false;
+
+  if (user) {
+    const { data } = await supabase
+      .from("tutors")
+      .select("status")
+      .eq("student_id", user.id)
+      .maybeSingle();
+    isApprovedTutor = data?.status === "approved";
+  }
+
   return (
     <main>
       <div className="bg-ink pb-12">
@@ -24,7 +41,7 @@ export default function Home() {
             href="/become-a-tutor"
             className="rounded-full border border-brass text-paper px-10 py-4 text-base font-medium"
           >
-            Become a tutor
+            {isApprovedTutor ? "My reviews" : "Become a tutor"}
           </Link>
         </div>
       </div>

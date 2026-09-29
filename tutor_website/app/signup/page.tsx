@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function StudentSignupPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,11 +27,12 @@ export default function StudentSignupPage() {
 
     setLoading(true);
     const supabase = createClient();
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: name },
+        data: { full_name: fullName },
       },
     });
 
@@ -70,15 +72,28 @@ export default function StudentSignupPage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm text-slate">Full name</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="border border-stone rounded-lg py-2 px-4 text-ink"
-          />
+        <div className="flex flex-col sm:flex-row gap-5">
+          <div className="flex flex-col gap-1 flex-1">
+            <label className="text-sm text-slate">First name</label>
+            <input
+              type="text"
+              required
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="border border-stone rounded-lg py-2 px-4 text-ink"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1 flex-1">
+            <label className="text-sm text-slate">Last name</label>
+            <input
+              type="text"
+              required
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="border border-stone rounded-lg py-2 px-4 text-ink"
+            />
+          </div>
         </div>
 
         <div className="flex flex-col gap-1">

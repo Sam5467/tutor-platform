@@ -7,5 +7,16 @@ export async function Header() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return <HeaderShell isLoggedIn={!!user} />;
+  let isApprovedTutor = false;
+
+  if (user) {
+    const { data } = await supabase
+      .from("tutors")
+      .select("status")
+      .eq("student_id", user.id)
+      .maybeSingle();
+    isApprovedTutor = data?.status === "approved";
+  }
+
+  return <HeaderShell isLoggedIn={!!user} isApprovedTutor={isApprovedTutor} />;
 }

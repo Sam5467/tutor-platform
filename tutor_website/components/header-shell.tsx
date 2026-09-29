@@ -6,9 +6,10 @@ import { useState } from "react";
 
 type HeaderShellProps = {
   isLoggedIn: boolean;
+  isApprovedTutor?: boolean;
 };
 
-export function HeaderShell({ isLoggedIn }: HeaderShellProps) {
+export function HeaderShell({ isLoggedIn, isApprovedTutor = false }: HeaderShellProps) {
   const pathname = usePathname();
   const isLanding = pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
@@ -21,7 +22,7 @@ export function HeaderShell({ isLoggedIn }: HeaderShellProps) {
         Find a tutor
       </Link>
       <Link href="/become-a-tutor" onClick={() => setMenuOpen(false)}>
-        Become a tutor
+        {isApprovedTutor ? "My reviews" : "Become a tutor"}
       </Link>
       {isLoggedIn ? (
         <Link href="/logout" onClick={() => setMenuOpen(false)}>

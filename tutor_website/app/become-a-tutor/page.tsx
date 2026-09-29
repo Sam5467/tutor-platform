@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { faculties } from "@/lib/faculties";
 import { createClient } from "@/lib/supabase/client";
+import { ReviewsSection } from "@/components/reviews-section";
 
 export default function BecomeATutorPage() {
   const [faculty, setFaculty] = useState("");
   const [subFaculty, setSubFaculty] = useState("");
   const [major, setMajor] = useState("");
-  const [name, setName] = useState("");
   const [year, setYear] = useState("Senior");
   const [courses, setCourses] = useState("");
   const [price, setPrice] = useState("");
@@ -23,6 +23,8 @@ export default function BecomeATutorPage() {
   const [loading, setLoading] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [existingStatus, setExistingStatus] = useState<string | null>(null);
+  const [existingTutorId, setExistingTutorId] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState("");
 
   useEffect(() => {
     async function checkExisting() {
@@ -32,12 +34,20 @@ export default function BecomeATutorPage() {
       } = await supabase.auth.getUser();
 
       if (user) {
+        const { data: studentRow } = await supabase
+          .from("students")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+        setStudentName(studentRow?.full_name ?? "");
+
         const { data } = await supabase
           .from("tutors")
-          .select("status")
+          .select("id, status")
           .eq("student_id", user.id)
           .maybeSingle();
         setExistingStatus(data?.status ?? null);
+        setExistingTutorId(data?.id ?? null);
       }
       setCheckingExisting(false);
     }
@@ -75,11 +85,17 @@ export default function BecomeATutorPage() {
       return;
     }
 
+    const { data: studentRow } = await supabase
+      .from("students")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+
     // NOTE: transcriptFile and photoFile are selected in the form but not
     // uploaded yet — real file storage is a separate step we're doing later.
     const { error: insertError } = await supabase.from("tutors").insert({
       student_id: user.id,
-      full_name: name,
+      full_name: studentRow?.full_name ?? "",
       faculty,
       major,
       year,
@@ -112,11 +128,21 @@ export default function BecomeATutorPage() {
     );
   }
 
-  if (existingStatus && !submitted) {
+  if (existingStatus === "approved" && existingTutorId && !submitted) {
+    return (
+      <div className="max-w-lg mx-auto py-16 px-4">
+        <h1 className="font-display text-2xl text-ink mb-8 text-center">
+          My reviews
+        </h1>
+        <ReviewsSection tutorId={existingTutorId} hideForm />
+      </div>
+    );
+  }
+
+  if (existingStatus && existingStatus !== "approved" && !submitted) {
     const messages: Record<string, string> = {
       pending:
         "Your application is under review. We'll reach out once it's been checked.",
-      approved: "Your tutor listing is approved and live on the site.",
       rejected:
         "Your application wasn't approved. Please contact us if you think this is a mistake.",
     };
@@ -152,18 +178,11 @@ export default function BecomeATutorPage() {
         Become a tutor
       </h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm text-slate">Full name</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="border border-stone rounded-lg py-2 px-4 text-ink"
-          />
-        </div>
+      <p className="text-sm text-slate text-center mb-6">
+        Applying as <span className="text-ink font-medium">{studentName}</span>
+      </p>
 
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">Faculty</label>
           <select

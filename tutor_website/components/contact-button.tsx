@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 type ContactButtonProps = {
   tutorId: string;
@@ -9,18 +10,52 @@ type ContactButtonProps = {
 
 export function ContactButton({ tutorId, phone }: ContactButtonProps) {
   const [contacted, setContacted] = useState(false);
+  const [checking, setChecking] = useState(true);
 
-  const handleContact = () => {
-    // TODO: replace with real contact-request tracking (DB write) once
-    // /tutors and /tutors/[id] are migrated off mock data onto real
-    // Supabase tutor records with real IDs.
-    console.log(`Contact request sent: tutorId=${tutorId}`);
-    setContacted(true);
+  useEffect(() => {
+    async function checkExisting() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data } = await supabase
+          .from("contact_requests")
+          .select("id")
+          .eq("student_id", user.id)
+          .eq("tutor_id", tutorId)
+          .maybeSingle();
+        if (data) setContacted(true);
+      }
+      setChecking(false);
+    }
+
+    checkExisting();
+  }, [tutorId]);
+
+  const handleContact = async () => {
+    if (contacted) return;
+
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { error } = await supabase.from("contact_requests").insert({
+      student_id: user.id,
+      tutor_id: tutorId,
+    });
+
+    if (!error) {
+      setContacted(true);
+    }
   };
 
   return (
     <div className="flex flex-col gap-3 border border-stone rounded-lg p-4">
-      
       <a
         href={`https://wa.me/${phone}`}
         target="_blank"
@@ -30,8 +65,10 @@ export function ContactButton({ tutorId, phone }: ContactButtonProps) {
       >
         Contact on WhatsApp
       </a>
-      {contacted && (
-        <p className="text-xs text-slate">Contact request recorded.</p>
+      {!checking && contacted && (
+        <p className="text-xs text-slate">
+          Feel free to leave a review once your session is done!
+        </p>
       )}
     </div>
   );
