@@ -12,25 +12,31 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   let approvedTutorId: string | null = null;
+  let firstName = "";
 
   if (user) {
-    const { data } = await supabase
-      .from("tutors")
-      .select("id, status")
-      .eq("student_id", user.id)
-      .maybeSingle();
+    const [{ data }, { data: student }] = await Promise.all([
+      supabase
+        .from("tutors")
+        .select("id, status")
+        .eq("student_id", user.id)
+        .maybeSingle(),
+      supabase.from("students").select("full_name").eq("id", user.id).single(),
+    ]);
     if (data?.status === "approved") {
       approvedTutorId = data.id;
+      firstName = (student?.full_name ?? "").trim().split(" ")[0];
     }
   }
 
   return (
     <main>
       <div className="bg-ink pb-12">
-        <ShapeHero
-          title1="Find a tutor for"
-          title2="your course"
-        />
+        {approvedTutorId ? (
+          <ShapeHero title1="Welcome back," title2={firstName || "tutor"} />
+        ) : (
+          <ShapeHero title1="Find a tutor for" title2="your course" />
+        )}
 
         {approvedTutorId ? (
           // Approved tutors get a single centered button to their own card.

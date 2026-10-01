@@ -6,13 +6,13 @@ import { useState } from "react";
 
 type HeaderShellProps = {
   isLoggedIn: boolean;
-  isApprovedTutor?: boolean;
+  approvedTutorId?: string | null;
   userName?: string | null;
 };
 
 export function HeaderShell({
   isLoggedIn,
-  isApprovedTutor = false,
+  approvedTutorId = null,
   userName = null,
 }: HeaderShellProps) {
   const pathname = usePathname();
@@ -26,9 +26,18 @@ export function HeaderShell({
       <Link href="/tutors" onClick={() => setMenuOpen(false)}>
         Find a tutor
       </Link>
-      <Link href="/become-a-tutor" onClick={() => setMenuOpen(false)}>
-        {isApprovedTutor ? "My reviews" : "Become a tutor"}
-      </Link>
+      {approvedTutorId ? (
+        <Link
+          href={`/tutors/${approvedTutorId}`}
+          onClick={() => setMenuOpen(false)}
+        >
+          My tutor card
+        </Link>
+      ) : (
+        <Link href="/become-a-tutor" onClick={() => setMenuOpen(false)}>
+          Become a tutor
+        </Link>
+      )}
       {isLoggedIn ? (
         // Plain <a> on purpose: a full page load makes sure the header is
         // re-fetched. A <Link> would reuse the cached "/" page and keep
