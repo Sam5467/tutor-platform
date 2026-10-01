@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
 
 export default function StudentSignupPage() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function StudentSignupPage() {
   // True when Supabase has "Confirm email" switched on: the account exists but
   // the person must click the link we emailed before they can log in.
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +28,11 @@ export default function StudentSignupPage() {
 
     if (password !== confirmPassword) {
       setError("Passwords don't match.");
+      return;
+    }
+
+    if (TURNSTILE_ENABLED && !captchaToken) {
+      setError("Please complete the check below first.");
       return;
     }
 
@@ -37,13 +45,20 @@ export default function StudentSignupPage() {
       options: {
         data: { full_name: fullName },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
+        captchaToken: captchaToken ?? undefined,
       },
     });
 
     setLoading(false);
 
     if (signUpError) {
-      setError(signUpError.message);
+      // Each check can only be used once, so ask for a fresh one.
+      setCaptchaReset((c) => c + 1);
+      setError(
+        signUpError.code === "captcha_failed"
+          ? "The human check failed. Please try again."
+          : signUpError.message
+      );
       return;
     }
 
@@ -158,6 +173,8 @@ export default function StudentSignupPage() {
             className="border border-stone rounded-lg py-2 px-4 text-ink"
           />
         </div>
+
+        <Turnstile onToken={setCaptchaToken} resetCount={captchaReset} />
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 

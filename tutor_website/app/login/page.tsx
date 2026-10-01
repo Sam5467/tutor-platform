@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
 
 function LoginForm() {
   const router = useRouter();
@@ -14,17 +15,26 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [unconfirmed, setUnconfirmed] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   const resendConfirmation = async () => {
     setResendMessage("");
+    if (TURNSTILE_ENABLED && !captchaToken) {
+      setResendMessage("Please complete the check below first.");
+      return;
+    }
+
     const supabase = createClient();
     const { error: resendError } = await supabase.auth.resend({
       type: "signup",
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
+        captchaToken: captchaToken ?? undefined,
       },
     });
+    setCaptchaReset((c) => c + 1);
     setResendMessage(
       resendError
         ? "We couldn't send the email. Please try again in a few minutes."
@@ -35,23 +45,34 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (TURNSTILE_ENABLED && !captchaToken) {
+      setError("Please complete the check below first.");
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: { captchaToken: captchaToken ?? undefined },
     });
 
     setLoading(false);
 
     if (signInError) {
+      // Each check can only be used once, so ask for a fresh one.
+      setCaptchaReset((c) => c + 1);
       const notConfirmed = signInError.code === "email_not_confirmed";
       setUnconfirmed(notConfirmed);
       setResendMessage("");
       setError(
         notConfirmed
           ? "Please confirm your email first. We sent you a link when you signed up."
+          : signInError.code === "captcha_failed"
+          ? "The human check failed. Please try again."
           : "Incorrect email or password."
       );
       return;
@@ -96,6 +117,8 @@ function LoginForm() {
         <Link href="/forgot-password" className="text-sm text-brass underline w-fit">
           Forgot your password?
         </Link>
+
+        <Turnstile onToken={setCaptchaToken} resetCount={captchaReset} />
 
         {searchParams.get("error") === "link" && !error && (
           <p className="text-sm text-slate">
