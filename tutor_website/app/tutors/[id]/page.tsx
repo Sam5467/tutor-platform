@@ -80,7 +80,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
               This is your own listing.
             </p>
           ) : (
-            <ContactButton tutorId={tutor.id} phone={tutor.phone} />
+            <ContactButton tutorId={tutor.id} />
           )}
         </div>
       </div>

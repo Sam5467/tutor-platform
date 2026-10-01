@@ -27,13 +27,31 @@ export function AdminDashboard() {
       const supabase = createClient();
       const { data, error: fetchError } = await supabase
         .from("tutors")
-        .select("id, full_name, major, status, is_paid, gpa, transcript_path")
+        .select(
+          "id, full_name, major, status, is_paid, tutor_private(gpa, transcript_path)"
+        )
         .order("created_at", { ascending: false });
 
       if (fetchError) {
         setError(fetchError.message);
       } else {
-        setTutors(data ?? []);
+        // GPA and transcript live in a separate private table; flatten them.
+        setTutors(
+          (data ?? []).map((t) => {
+            const priv = Array.isArray(t.tutor_private)
+              ? t.tutor_private[0]
+              : t.tutor_private;
+            return {
+              id: t.id,
+              full_name: t.full_name,
+              major: t.major,
+              status: t.status,
+              is_paid: t.is_paid,
+              gpa: priv?.gpa ?? null,
+              transcript_path: priv?.transcript_path ?? null,
+            };
+          })
+        );
       }
       setLoading(false);
     }

@@ -7,7 +7,6 @@ export type TutorRow = {
   courses: string;
   price: number | string;
   bio: string | null;
-  phone: string;
   status: "pending" | "approved" | "rejected";
   is_paid: boolean;
   profile_picture_path: string | null;
@@ -27,12 +26,11 @@ export type Tutor = {
   photoUrl: string | null;
   joinedAt: string;
   bio: string;
-  phone: string;
   status: "pending" | "approved" | "rejected";
 };
 
 export const TUTOR_COLUMNS =
-  "id, full_name, faculty, major, year, courses, price, bio, phone, status, is_paid, profile_picture_path, created_at";
+  "id, full_name, faculty, major, year, courses, price, bio, status, is_paid, profile_picture_path, created_at";
 
 export function rowToTutor(row: TutorRow): Tutor {
   const photoUrl = row.profile_picture_path
@@ -56,7 +54,6 @@ export function rowToTutor(row: TutorRow): Tutor {
     photoUrl,
     joinedAt: row.created_at,
     bio: row.bio ?? "",
-    phone: row.phone,
     status: row.status,
   };
 }

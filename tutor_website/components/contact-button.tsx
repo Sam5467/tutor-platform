@@ -5,12 +5,13 @@ import { createClient } from "@/lib/supabase/client";
 
 type ContactButtonProps = {
   tutorId: string;
-  phone: string;
 };
 
-export function ContactButton({ tutorId, phone }: ContactButtonProps) {
+export function ContactButton({ tutorId }: ContactButtonProps) {
   const [contacted, setContacted] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function checkExisting() {
@@ -35,36 +36,51 @@ export function ContactButton({ tutorId, phone }: ContactButtonProps) {
   }, [tutorId]);
 
   const handleContact = async () => {
-    if (contacted) return;
+    if (loading) return;
+    setError("");
+    setLoading(true);
 
+    // Open the new tab right now, while we're still inside the tap, so phone
+    // browsers don't block it. We point it at WhatsApp once we have the number.
+    const tab = window.open("", "_blank");
+
+    // The phone number is only handed out here, to logged-in students. This
+    // also records that they contacted this tutor (needed to leave a review).
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: phone, error: contactError } = await supabase.rpc(
+      "get_tutor_contact",
+      { p_tutor_id: tutorId }
+    );
 
-    if (!user) return;
+    setLoading(false);
 
-    const { error } = await supabase.from("contact_requests").insert({
-      student_id: user.id,
-      tutor_id: tutorId,
-    });
+    if (contactError || !phone) {
+      tab?.close();
+      setError(contactError?.message ?? "Couldn't get contact details.");
+      return;
+    }
 
-    if (!error) {
-      setContacted(true);
+    setContacted(true);
+    const link = `https://wa.me/${phone}`;
+    if (tab) {
+      tab.opener = null;
+      tab.location.href = link;
+    } else {
+      window.location.href = link;
     }
   };
 
   return (
     <div className="flex flex-col gap-3 border border-stone rounded-lg p-4">
-      <a
-        href={`https://wa.me/${phone}`}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
         onClick={handleContact}
-        className="rounded-full bg-brass text-paper text-center px-6 py-3 text-sm font-medium"
+        disabled={loading}
+        className="rounded-full bg-brass text-paper text-center px-6 py-3 text-sm font-medium disabled:opacity-60"
       >
-        Contact on WhatsApp
-      </a>
+        {loading ? "Opening WhatsApp..." : "Contact on WhatsApp"}
+      </button>
+      {error && <p className="text-xs text-red-600">{error}</p>}
       {!checking && contacted && (
         <p className="text-xs text-slate">
           Feel free to leave a review once your session is done!

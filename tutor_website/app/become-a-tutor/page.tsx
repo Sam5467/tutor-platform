@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { faculties } from "@/lib/faculties";
 import { createClient } from "@/lib/supabase/client";
 import { ReviewsSection } from "@/components/reviews-section";
+import { normalizePhone } from "@/lib/phone";
 import {
   PHOTO_RULE,
   TRANSCRIPT_RULE,
@@ -28,6 +29,7 @@ export default function BecomeATutorPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [normalizedPhone, setNormalizedPhone] = useState("");
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [existingStatus, setExistingStatus] = useState<string | null>(null);
   const [existingTutorId, setExistingTutorId] = useState<string | null>(null);
@@ -102,6 +104,16 @@ export default function BecomeATutorPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    const cleaned = normalizePhone(phone);
+    if (!cleaned) {
+      setError(
+        "That doesn't look like a valid phone number. Please include your country code, e.g. 96170123456."
+      );
+      return;
+    }
+
+    setNormalizedPhone(cleaned);
     setShowConfirm(true);
   };
 
@@ -121,12 +133,6 @@ export default function BecomeATutorPage() {
       setLoading(false);
       return;
     }
-
-    const { data: studentRow } = await supabase
-      .from("students")
-      .select("full_name")
-      .eq("id", user.id)
-      .single();
 
     if (!transcriptFile) {
       setError("Please upload your transcript.");
@@ -178,20 +184,23 @@ export default function BecomeATutorPage() {
       photoPath = path;
     }
 
-    const { error: insertError } = await supabase.from("tutors").insert({
-      student_id: user.id,
-      full_name: studentRow?.full_name ?? "",
-      faculty,
-      major,
-      year,
-      courses,
-      price: Number(price),
-      bio,
-      phone,
-      gpa: Number(gpa),
-      transcript_path: transcriptPath,
-      profile_picture_path: photoPath,
-    });
+    // One checked step on the server saves the public listing and the
+    // private details (phone, GPA, transcript) together.
+    const { error: insertError } = await supabase.rpc(
+      "submit_tutor_application",
+      {
+        p_faculty: faculty,
+        p_major: major,
+        p_year: year,
+        p_courses: courses,
+        p_price: Number(price),
+        p_bio: bio,
+        p_phone: normalizedPhone,
+        p_gpa: Number(gpa),
+        p_transcript_path: transcriptPath,
+        p_profile_picture_path: photoPath,
+      }
+    );
 
     setLoading(false);
 
@@ -355,6 +364,7 @@ export default function BecomeATutorPage() {
           </label>
           <textarea
             required
+            maxLength={300}
             value={courses}
             onChange={(e) => setCourses(e.target.value)}
             placeholder="CSC 210, MATH 201, CSC 330"
@@ -369,6 +379,7 @@ export default function BecomeATutorPage() {
             type="number"
             required
             min={1}
+            max={1000}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             className="border border-stone rounded-lg py-2 px-4 text-ink"
@@ -379,6 +390,7 @@ export default function BecomeATutorPage() {
           <label className="text-sm text-slate">Bio</label>
           <textarea
             required
+            maxLength={1000}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             className="border border-stone rounded-lg py-2 px-4 text-ink"
@@ -388,7 +400,7 @@ export default function BecomeATutorPage() {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">
-            Phone / WhatsApp number
+            Phone / WhatsApp number (with country code)
           </label>
           <input
             type="tel"
@@ -503,7 +515,7 @@ export default function BecomeATutorPage() {
               <dt className="text-slate">Full name</dt>
               <dd className="text-ink font-medium mb-3">{studentName}</dd>
               <dt className="text-slate">Phone / WhatsApp number</dt>
-              <dd className="text-ink font-medium">{phone}</dd>
+              <dd className="text-ink font-medium">+{normalizedPhone}</dd>
             </dl>
             <div className="flex gap-3">
               <button
