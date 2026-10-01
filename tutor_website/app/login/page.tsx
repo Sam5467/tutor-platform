@@ -31,7 +31,10 @@ function LoginForm() {
       return;
     }
 
-    router.push(searchParams.get("next") ?? "/tutors");
+    // Only follow "next" if it's a path on this site ("/..." but not "//...").
+    const next = searchParams.get("next");
+    const safeNext = next && /^\/(?!\/)/.test(next) ? next : "/";
+    router.push(safeNext);
     router.refresh();
   };
 

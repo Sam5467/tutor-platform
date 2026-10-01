@@ -7,9 +7,14 @@ import { useState } from "react";
 type HeaderShellProps = {
   isLoggedIn: boolean;
   isApprovedTutor?: boolean;
+  userName?: string | null;
 };
 
-export function HeaderShell({ isLoggedIn, isApprovedTutor = false }: HeaderShellProps) {
+export function HeaderShell({
+  isLoggedIn,
+  isApprovedTutor = false,
+  userName = null,
+}: HeaderShellProps) {
   const pathname = usePathname();
   const isLanding = pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
@@ -28,7 +33,14 @@ export function HeaderShell({ isLoggedIn, isApprovedTutor = false }: HeaderShell
         // Plain <a> on purpose: a full page load makes sure the header is
         // re-fetched. A <Link> would reuse the cached "/" page and keep
         // showing "Log out".
-        <a href="/logout">Log out</a>
+        <>
+          {userName && (
+            <span className="max-w-[10rem] truncate opacity-70">
+              {userName}
+            </span>
+          )}
+          <a href="/logout">Log out</a>
+        </>
       ) : (
         <>
           <Link href="/login" onClick={() => setMenuOpen(false)}>

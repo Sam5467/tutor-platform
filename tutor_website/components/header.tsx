@@ -8,15 +8,26 @@ export async function Header() {
   } = await supabase.auth.getUser();
 
   let isApprovedTutor = false;
+  let userName: string | null = null;
 
   if (user) {
-    const { data } = await supabase
-      .from("tutors")
-      .select("status")
-      .eq("student_id", user.id)
-      .maybeSingle();
-    isApprovedTutor = data?.status === "approved";
+    const [{ data: tutor }, { data: student }] = await Promise.all([
+      supabase
+        .from("tutors")
+        .select("status")
+        .eq("student_id", user.id)
+        .maybeSingle(),
+      supabase.from("students").select("full_name").eq("id", user.id).single(),
+    ]);
+    isApprovedTutor = tutor?.status === "approved";
+    userName = student?.full_name || null;
   }
 
-  return <HeaderShell isLoggedIn={!!user} isApprovedTutor={isApprovedTutor} />;
+  return (
+    <HeaderShell
+      isLoggedIn={!!user}
+      isApprovedTutor={isApprovedTutor}
+      userName={userName}
+    />
+  );
 }
