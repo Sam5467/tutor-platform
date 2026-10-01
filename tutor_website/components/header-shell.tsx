@@ -23,9 +23,11 @@ export function HeaderShell({
 
   const navLinks = (
     <>
-      <Link href="/tutors" onClick={() => setMenuOpen(false)}>
-        Find a tutor
-      </Link>
+      {!approvedTutorId && (
+        <Link href="/tutors" onClick={() => setMenuOpen(false)}>
+          Find a tutor
+        </Link>
+      )}
       {approvedTutorId ? (
         <Link
           href={`/tutors/${approvedTutorId}`}
