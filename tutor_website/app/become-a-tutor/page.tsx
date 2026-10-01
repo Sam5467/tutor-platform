@@ -27,6 +27,7 @@ export default function BecomeATutorPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [existingStatus, setExistingStatus] = useState<string | null>(null);
   const [existingTutorId, setExistingTutorId] = useState<string | null>(null);
@@ -96,9 +97,17 @@ export default function BecomeATutorPage() {
     setPhotoPreview(file ? URL.createObjectURL(file) : null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Submitting the form first shows a "are you sure?" box with the name and
+  // phone number; the real submission happens in submitApplication.
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setShowConfirm(true);
+  };
+
+  const submitApplication = async () => {
+    setError("");
+    setShowConfirm(false);
     setLoading(true);
 
     const supabase = createClient();
@@ -474,6 +483,47 @@ export default function BecomeATutorPage() {
           {loading ? "Submitting..." : "Submit for review"}
         </button>
       </form>
+
+      {showConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-title"
+        >
+          <div className="w-full max-w-sm rounded-xl bg-paper p-6 shadow-lg">
+            <h2 id="confirm-title" className="font-display text-xl text-ink mb-2">
+              Are you sure about this information?
+            </h2>
+            <p className="text-sm text-slate mb-4">
+              Students will contact you on this number, so please make sure it
+              is correct and has WhatsApp.
+            </p>
+            <dl className="rounded-lg border border-stone p-4 mb-6 text-sm">
+              <dt className="text-slate">Full name</dt>
+              <dd className="text-ink font-medium mb-3">{studentName}</dd>
+              <dt className="text-slate">Phone / WhatsApp number</dt>
+              <dd className="text-ink font-medium">{phone}</dd>
+            </dl>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 rounded-full border border-stone px-4 py-2 text-sm text-slate"
+              >
+                Go back
+              </button>
+              <button
+                type="button"
+                onClick={submitApplication}
+                className="flex-1 rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium"
+              >
+                Yes, submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
