@@ -25,9 +25,10 @@ export function HeaderShell({ isLoggedIn, isApprovedTutor = false }: HeaderShell
         {isApprovedTutor ? "My reviews" : "Become a tutor"}
       </Link>
       {isLoggedIn ? (
-        <Link href="/logout" onClick={() => setMenuOpen(false)}>
-          Log out
-        </Link>
+        // Plain <a> on purpose: a full page load makes sure the header is
+        // re-fetched. A <Link> would reuse the cached "/" page and keep
+        // showing "Log out".
+        <a href="/logout">Log out</a>
       ) : (
         <>
           <Link href="/login" onClick={() => setMenuOpen(false)}>

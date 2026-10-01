@@ -13,6 +13,8 @@ type TutorRow = {
   major: string;
   status: "pending" | "approved" | "rejected";
   is_paid: boolean;
+  gpa: number | null;
+  transcript_path: string | null;
 };
 
 export function AdminDashboard() {
@@ -25,7 +27,7 @@ export function AdminDashboard() {
       const supabase = createClient();
       const { data, error: fetchError } = await supabase
         .from("tutors")
-        .select("id, full_name, major, status, is_paid")
+        .select("id, full_name, major, status, is_paid, gpa, transcript_path")
         .order("created_at", { ascending: false });
 
       if (fetchError) {
@@ -81,6 +83,22 @@ export function AdminDashboard() {
     );
   };
 
+  // The transcripts bucket is private, so we ask for a link that expires
+  // after 60 seconds instead of a permanent public URL.
+  const viewTranscript = async (path: string) => {
+    const supabase = createClient();
+    const { data, error: urlError } = await supabase.storage
+      .from("transcripts")
+      .createSignedUrl(path, 60);
+
+    if (urlError || !data) {
+      setError(urlError?.message ?? "Couldn't open the transcript.");
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
+
   const togglePayment = async (id: string, currentlyPaid: boolean) => {
     const supabase = createClient();
     const { error: updateError } = await supabase
@@ -124,9 +142,10 @@ export function AdminDashboard() {
             <p className="text-slate text-sm">No tutor applications yet.</p>
           ) : (
             <div className="flex flex-col">
-              <div className="grid grid-cols-5 gap-4 text-xs text-slate uppercase pb-2 border-b border-stone">
+              <div className="grid grid-cols-6 gap-4 text-xs text-slate uppercase pb-2 border-b border-stone">
                 <span>Name</span>
                 <span>Major</span>
+                <span>GPA / Transcript</span>
                 <span>Status</span>
                 <span>Payment</span>
                 <span>Actions</span>
@@ -134,10 +153,25 @@ export function AdminDashboard() {
               {tutors.map((tutor) => (
                 <div
                   key={tutor.id}
-                  className="grid grid-cols-5 gap-4 items-center py-4 border-b border-stone text-sm"
+                  className="grid grid-cols-6 gap-4 items-center py-4 border-b border-stone text-sm"
                 >
                   <span className="text-ink">{tutor.full_name}</span>
                   <span className="text-slate">{tutor.major}</span>
+                  <div className="flex flex-col items-start">
+                    <span className="text-slate">
+                      {tutor.gpa !== null ? Number(tutor.gpa).toFixed(2) : "—"}
+                    </span>
+                    {tutor.transcript_path ? (
+                      <button
+                        onClick={() => viewTranscript(tutor.transcript_path!)}
+                        className="text-ink underline text-xs"
+                      >
+                        View transcript
+                      </button>
+                    ) : (
+                      <span className="text-xs text-slate">No transcript</span>
+                    )}
+                  </div>
                   <span
                     className={
                       tutor.status === "approved"

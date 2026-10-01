@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { faculties } from "@/lib/faculties";
 import { createClient } from "@/lib/supabase/client";
 import { ReviewsSection } from "@/components/reviews-section";
+import {
+  PHOTO_RULE,
+  TRANSCRIPT_RULE,
+  buildUploadPath,
+  validateUpload,
+} from "@/lib/uploads";
 
 export default function BecomeATutorPage() {
   const [faculty, setFaculty] = useState("");
@@ -62,8 +68,30 @@ export default function BecomeATutorPage() {
   const majors =
     subFaculties.find((s) => s.name === effectiveSubFaculty)?.majors ?? [];
 
+  const handleTranscriptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    const problem = file ? validateUpload(file, TRANSCRIPT_RULE) : null;
+    if (problem) {
+      setError(problem);
+      setTranscriptFile(null);
+      e.target.value = "";
+      return;
+    }
+    setError("");
+    setTranscriptFile(file);
+  };
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+    const problem = file ? validateUpload(file, PHOTO_RULE) : null;
+    if (problem) {
+      setError(problem);
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      e.target.value = "";
+      return;
+    }
+    setError("");
     setPhotoFile(file);
     setPhotoPreview(file ? URL.createObjectURL(file) : null);
   };
@@ -91,8 +119,56 @@ export default function BecomeATutorPage() {
       .eq("id", user.id)
       .single();
 
-    // NOTE: transcriptFile and photoFile are selected in the form but not
-    // uploaded yet — real file storage is a separate step we're doing later.
+    if (!transcriptFile) {
+      setError("Please upload your transcript.");
+      setLoading(false);
+      return;
+    }
+
+    // Re-check here too, in case the state was changed some other way.
+    const transcriptProblem = validateUpload(transcriptFile, TRANSCRIPT_RULE);
+    const photoProblem = photoFile
+      ? validateUpload(photoFile, PHOTO_RULE)
+      : null;
+    if (transcriptProblem || photoProblem) {
+      setError(transcriptProblem ?? photoProblem ?? "");
+      setLoading(false);
+      return;
+    }
+
+    const transcriptPath = buildUploadPath(
+      user.id,
+      "transcript",
+      transcriptFile,
+      TRANSCRIPT_RULE
+    );
+    const { error: transcriptError } = await supabase.storage
+      .from("transcripts")
+      .upload(transcriptPath, transcriptFile, {
+        contentType: transcriptFile.type,
+      });
+
+    if (transcriptError) {
+      setError("We couldn't upload your transcript. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    let photoPath: string | null = null;
+    if (photoFile) {
+      const path = buildUploadPath(user.id, "photo", photoFile, PHOTO_RULE);
+      const { error: photoError } = await supabase.storage
+        .from("profile-pictures")
+        .upload(path, photoFile, { contentType: photoFile.type });
+
+      if (photoError) {
+        setError("We couldn't upload your profile picture. Please try again.");
+        setLoading(false);
+        return;
+      }
+      photoPath = path;
+    }
+
     const { error: insertError } = await supabase.from("tutors").insert({
       student_id: user.id,
       full_name: studentRow?.full_name ?? "",
@@ -104,6 +180,8 @@ export default function BecomeATutorPage() {
       bio,
       phone,
       gpa: Number(gpa),
+      transcript_path: transcriptPath,
+      profile_picture_path: photoPath,
     });
 
     setLoading(false);
@@ -329,7 +407,7 @@ export default function BecomeATutorPage() {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">
-            Transcript (proof of GPA) — PDF or image
+            Transcript (proof of GPA) — PDF, JPG, PNG or WebP, max 5 MB
           </label>
           <div className="flex items-center gap-3">
             <label
@@ -342,8 +420,8 @@ export default function BecomeATutorPage() {
               id="transcript-upload"
               type="file"
               required
-              accept=".pdf,image/*"
-              onChange={(e) => setTranscriptFile(e.target.files?.[0] ?? null)}
+              accept="application/pdf,image/jpeg,image/png,image/webp"
+              onChange={handleTranscriptChange}
               className="hidden"
             />
             <span className="text-sm text-slate">
@@ -351,13 +429,13 @@ export default function BecomeATutorPage() {
             </span>
           </div>
           <p className="text-xs text-slate mt-1">
-            File upload isn't wired up yet — this is just a placeholder for now.
+            Only you and our admins can see your transcript.
           </p>
         </div>
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">
-            Profile picture (optional)
+            Profile picture (optional) — JPG, PNG or WebP, max 2 MB
           </label>
           <div className="flex items-center gap-3">
             <label
@@ -369,7 +447,7 @@ export default function BecomeATutorPage() {
             <input
               id="photo-upload"
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               onChange={handlePhotoChange}
               className="hidden"
             />
