@@ -12,6 +12,25 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unconfirmed, setUnconfirmed] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
+
+  const resendConfirmation = async () => {
+    setResendMessage("");
+    const supabase = createClient();
+    const { error: resendError } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
+      },
+    });
+    setResendMessage(
+      resendError
+        ? "We couldn't send the email. Please try again in a few minutes."
+        : "Confirmation email sent. Please check your inbox."
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +46,14 @@ function LoginForm() {
     setLoading(false);
 
     if (signInError) {
-      setError("Incorrect email or password.");
+      const notConfirmed = signInError.code === "email_not_confirmed";
+      setUnconfirmed(notConfirmed);
+      setResendMessage("");
+      setError(
+        notConfirmed
+          ? "Please confirm your email first. We sent you a link when you signed up."
+          : "Incorrect email or password."
+      );
       return;
     }
 
@@ -78,6 +104,21 @@ function LoginForm() {
         )}
 
         {error && <p className="text-sm text-slate">{error}</p>}
+
+        {unconfirmed && (
+          <div className="flex flex-col gap-1 items-start">
+            <button
+              type="button"
+              onClick={resendConfirmation}
+              className="text-sm text-brass underline"
+            >
+              Resend confirmation email
+            </button>
+            {resendMessage && (
+              <p className="text-sm text-slate">{resendMessage}</p>
+            )}
+          </div>
+        )}
 
         <button
           type="submit"

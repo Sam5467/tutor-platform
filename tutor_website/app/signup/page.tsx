@@ -15,6 +15,9 @@ export default function StudentSignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // True when Supabase has "Confirm email" switched on: the account exists but
+  // the person must click the link we emailed before they can log in.
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,11 +31,12 @@ export default function StudentSignupPage() {
     setLoading(true);
     const supabase = createClient();
     const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
       },
     });
 
@@ -43,8 +47,31 @@ export default function StudentSignupPage() {
       return;
     }
 
+    setNeedsConfirmation(!data.session);
     setSubmitted(true);
   };
+
+  if (submitted && needsConfirmation) {
+    return (
+      <div className="max-w-md mx-auto py-24 px-4 text-center">
+        <h1 className="font-display text-2xl text-ink mb-4">
+          Check your email
+        </h1>
+        <p className="text-slate">
+          We've sent a confirmation link to{" "}
+          <span className="text-ink">{email}</span>. Click it to activate your
+          account, then log in. It may take a minute, and it's worth checking
+          your spam folder.
+        </p>
+        <Link
+          href="/login"
+          className="inline-block mt-6 rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium"
+        >
+          Go to log in
+        </Link>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
