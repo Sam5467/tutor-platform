@@ -94,9 +94,11 @@ function ElegantShape({
 export default function ShapeHero({
   title1 = "Elevate Your",
   title2 = "Digital Vision",
+  tagline = "Your safe place to get back on track.",
 }: {
   title1?: string;
   title2?: string;
+  tagline?: string;
 }) {
   const fadeUpVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -140,7 +142,7 @@ export default function ShapeHero({
           </div>
           <div>
             <p className="mx-auto mb-8 max-w-xl px-4 font-light text-base text-paper/70 leading-relaxed tracking-wide sm:text-lg md:text-xl">
-              Your safe place to get back on track.
+              {tagline}
             </p>
           </div>
         </div>

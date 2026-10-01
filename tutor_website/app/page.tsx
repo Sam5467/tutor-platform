@@ -33,7 +33,11 @@ export default async function Home() {
     <main>
       <div className="bg-ink pb-12">
         {approvedTutorId ? (
-          <ShapeHero title1="Welcome back," title2={firstName || "tutor"} />
+          <ShapeHero
+            title1="Welcome back,"
+            title2={firstName || "tutor"}
+            tagline="Your tutor card is live. Students can find you and reach out."
+          />
         ) : (
           <ShapeHero title1="Find a tutor for" title2="your course" />
         )}
