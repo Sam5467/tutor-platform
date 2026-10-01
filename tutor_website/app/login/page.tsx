@@ -67,6 +67,16 @@ function LoginForm() {
           />
         </div>
 
+        <Link href="/forgot-password" className="text-sm text-brass underline w-fit">
+          Forgot your password?
+        </Link>
+
+        {searchParams.get("error") === "link" && !error && (
+          <p className="text-sm text-slate">
+            That link is invalid or has expired. Please request a new one.
+          </p>
+        )}
+
         {error && <p className="text-sm text-slate">{error}</p>}
 
         <button
