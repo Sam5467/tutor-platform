@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TUTOR_COLUMNS, rowToTutor, type TutorRow } from "@/lib/tutors";
@@ -76,9 +77,15 @@ export default async function TutorProfilePage({ params }: PageProps) {
           </div>
 
           {isOwnProfile ? (
-            <p className="text-sm text-slate text-center border border-stone rounded-lg p-4">
-              This is your own listing.
-            </p>
+            <div className="flex flex-col gap-3 border border-stone rounded-lg p-4 text-center">
+              <p className="text-sm text-slate">This is your own listing.</p>
+              <Link
+                href={`/tutors/${tutor.id}/edit`}
+                className="rounded-full bg-ink text-paper px-6 py-3 text-sm font-medium"
+              >
+                Edit my listing
+              </Link>
+            </div>
           ) : (
             <ContactButton tutorId={tutor.id} />
           )}

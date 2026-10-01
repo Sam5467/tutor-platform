@@ -9,6 +9,7 @@ type Review = {
   comment: string | null;
   created_at: string;
   student_name: string;
+  student_id: string;
 };
 
 type ReviewsSectionProps = {
@@ -21,6 +22,8 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
   const [hasContacted, setHasContacted] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -30,7 +33,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
     const supabase = createClient();
     const { data } = await supabase
       .from("reviews")
-      .select("id, rating, comment, created_at, student_name")
+      .select("id, rating, comment, created_at, student_name, student_id")
       .eq("tutor_id", tutorId)
       .order("created_at", { ascending: false });
     setReviews(data ?? []);
@@ -47,6 +50,14 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
 
       if (!user) return;
       setLoggedIn(true);
+      setCurrentUserId(user.id);
+
+      const { data: me } = await supabase
+        .from("students")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+      setIsAdmin(!!me?.is_admin);
 
       const { data: contactRow } = await supabase
         .from("contact_requests")
@@ -115,9 +126,45 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
     await loadReviews();
   };
 
+  const handleDelete = async (review: Review) => {
+    const ownReview = review.student_id === currentUserId;
+    const message = ownReview
+      ? "Delete your review? You'll be able to write a new one."
+      : `Remove ${review.student_name}'s review permanently?`;
+    if (!window.confirm(message)) return;
+
+    const supabase = createClient();
+    const { error: deleteError } = await supabase
+      .from("reviews")
+      .delete()
+      .eq("id", review.id);
+
+    if (deleteError) {
+      setError(deleteError.message);
+      return;
+    }
+
+    setReviews((prev) => (prev ?? []).filter((r) => r.id !== review.id));
+    if (ownReview) setAlreadyReviewed(false);
+  };
+
+  const average =
+    reviews && reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : null;
+
   return (
     <div>
-      <h2 className="font-display text-lg text-ink mb-3">Reviews</h2>
+      <h2 className="font-display text-lg text-ink mb-1">Reviews</h2>
+      {average !== null && reviews && (
+        <p className="text-sm text-slate mb-3">
+          {average.toFixed(1)} / 5 · {reviews.length} review
+          {reviews.length === 1 ? "" : "s"}
+        </p>
+      )}
+      {error && (reviews?.length ?? 0) > 0 && (
+        <p className="text-sm text-red-600 mb-3">{error}</p>
+      )}
 
       {reviews === null ? (
         <p className="text-slate text-sm">Loading reviews...</p>
@@ -132,6 +179,17 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
               </p>
               {review.comment && (
                 <p className="text-sm text-slate">{review.comment}</p>
+              )}
+              {(isAdmin || review.student_id === currentUserId) && (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(review)}
+                  className="mt-1 text-xs text-red-600 underline"
+                >
+                  {review.student_id === currentUserId && !isAdmin
+                    ? "Delete my review"
+                    : "Remove review"}
+                </button>
               )}
             </div>
           ))}
@@ -163,6 +221,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Optional comment"
+            maxLength={500}
             rows={3}
             className="border border-stone rounded-lg py-2 px-4 text-ink text-sm"
           />

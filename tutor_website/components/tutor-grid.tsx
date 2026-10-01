@@ -17,12 +17,12 @@ export function TutorGrid({ tutors, onBack }: TutorGridProps) {
     (a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime()
   );
 
-  const filtered = courseQuery.trim()
-    ? sorted.filter((t) =>
-        t.courses.some((c) =>
-          c.toLowerCase().includes(courseQuery.trim().toLowerCase())
-        )
-      )
+  // Ignore case and spaces so "csc210" finds "CSC 210".
+  const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, "");
+  const query = normalize(courseQuery);
+
+  const filtered = query
+    ? sorted.filter((t) => t.courses.some((c) => normalize(c).includes(query)))
     : sorted;
 
   return (

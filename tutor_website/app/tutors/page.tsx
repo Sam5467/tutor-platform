@@ -41,8 +41,35 @@ export default function TutorsPage() {
         setTutors([]);
         return;
       }
+      const loaded = (data as TutorRow[]).map(rowToTutor);
+
+      // Average rating per tutor, from the public reviews.
+      if (loaded.length > 0) {
+        const { data: reviewRows } = await supabase
+          .from("reviews")
+          .select("tutor_id, rating")
+          .in(
+            "tutor_id",
+            loaded.map((t) => t.id)
+          );
+
+        const totals: Record<string, { sum: number; count: number }> = {};
+        for (const r of reviewRows ?? []) {
+          const entry = (totals[r.tutor_id] ??= { sum: 0, count: 0 });
+          entry.sum += r.rating;
+          entry.count += 1;
+        }
+        for (const t of loaded) {
+          const entry = totals[t.id];
+          if (entry) {
+            t.rating = entry.sum / entry.count;
+            t.reviewCount = entry.count;
+          }
+        }
+      }
+
       setFetchError("");
-      setTutors((data as TutorRow[]).map(rowToTutor));
+      setTutors(loaded);
     }
 
     loadTutors();

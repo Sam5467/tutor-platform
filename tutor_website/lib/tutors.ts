@@ -48,7 +48,7 @@ export function rowToTutor(row: TutorRow): Tutor {
       .map((c) => c.trim())
       .filter(Boolean),
     pricePerSession: Number(row.price),
-    // Reviews aren't wired to the database yet.
+    // Filled in afterwards by the pages that load reviews.
     rating: null,
     reviewCount: 0,
     photoUrl,
