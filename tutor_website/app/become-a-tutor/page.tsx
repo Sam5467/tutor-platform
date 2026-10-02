@@ -428,8 +428,13 @@ export default function BecomeATutorPage() {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">
-            Transcript (proof of GPA) — PDF, JPG, PNG or WebP, max 5 MB
+            Transcript — PDF, JPG, PNG or WebP, max 5 MB
           </label>
+          <p className="text-xs text-ink">
+            Your transcript must clearly show your <strong>GPA</strong> and
+            your <strong>USEK student ID</strong>. Applications without both
+            can't be approved.
+          </p>
           <div className="flex items-center gap-3">
             <label
               htmlFor="transcript-upload"
