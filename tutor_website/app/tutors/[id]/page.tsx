@@ -43,7 +43,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
     } else if (!paidUntil) {
       listingNote = studentsOpen
         ? "Your listing isn't active right now. Contact us to renew."
-        : "You're approved! Your free month starts the day we open the site to students.";
+        : "You're approved! Your free period starts the day we open the site to students.";
     } else if (new Date(paidUntil) > new Date()) {
       listingNote = `Your listing is live until ${new Date(
         paidUntil

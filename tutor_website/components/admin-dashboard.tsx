@@ -250,7 +250,7 @@ export function AdminDashboard() {
 
   const switchStudentsOpen = async (open: boolean) => {
     const question = open
-      ? "Open the site to students?\n\nStudents will be able to search for tutors, and every approved tutor gets 30 free days starting today."
+      ? "Open the site to students?\n\nStudents will be able to search for tutors. All tutors share one free period that ends 30 days from today, including tutors you approve later."
       : "Close the site to students again?\n\nTutors will be hidden from search until you reopen it. Their listing dates don't change.";
     if (!window.confirm(question)) return;
 
@@ -274,7 +274,7 @@ export function AdminDashboard() {
       setNotice(
         `The site is now open to students. ${granted ?? 0} tutor${
           granted === 1 ? "" : "s"
-        } received a free month.`
+        } received the free period.`
       );
       // Reload the dates that were just granted.
       window.location.reload();
@@ -309,7 +309,7 @@ export function AdminDashboard() {
           <p className="text-sm text-slate">
             {studentsOpen
               ? "Students can search for tutors. Only tutors whose listing is active are shown."
-              : "Students can't search yet. Opening the site gives every approved tutor 30 free days."}
+              : "Students can't search yet. Opening the site starts one shared free period of 30 days for all tutors."}
           </p>
         </div>
         <button
