@@ -171,7 +171,8 @@ begin
       students_opened_at = case
         when p_open and students_opened_at is null then now()
         else students_opened_at
-      end;
+      end
+  where id = true;
 
   -- Opening starts the free month for every tutor approved so far
   if p_open then
