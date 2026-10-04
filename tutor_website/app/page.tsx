@@ -4,8 +4,10 @@ import { HowItWorks } from "@/components/how-it-works";
 import { FaqPreview } from "@/components/faq-preview";
 import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/server";
+import { getStudentsOpen } from "@/lib/site-settings";
 
 export default async function Home() {
+  const studentsOpen = await getStudentsOpen();
   const supabase = await createClient();
   const {
     data: { user },
@@ -38,8 +40,15 @@ export default async function Home() {
             title2={firstName || "tutor"}
             tagline="Your tutor card is live. Students can find you and reach out."
           />
-        ) : (
+        ) : studentsOpen ? (
           <ShapeHero title1="Find a tutor for" title2="your course" />
+        ) : (
+          // Tutors-only launch: invite tutors, no student search yet.
+          <ShapeHero
+            title1="Tutor your fellow"
+            title2="USEK students"
+            tagline="Apply now and be one of our first tutors."
+          />
         )}
 
         {approvedTutorId ? (
@@ -52,7 +61,7 @@ export default async function Home() {
               View my tutor card
             </Link>
           </div>
-        ) : (
+        ) : studentsOpen ? (
           <div className="flex gap-4 justify-center text-paper">
             <Link
               href="/tutors"
@@ -63,6 +72,16 @@ export default async function Home() {
             <Link
               href="/become-a-tutor"
               className="rounded-full border border-brass text-paper px-10 py-4 text-base font-medium"
+            >
+              Become a tutor
+            </Link>
+          </div>
+        ) : (
+          // Before the site opens to students, "Become a tutor" is the only button.
+          <div className="flex justify-center">
+            <Link
+              href="/become-a-tutor"
+              className="rounded-full bg-brass text-ink px-10 py-4 text-base font-medium"
             >
               Become a tutor
             </Link>

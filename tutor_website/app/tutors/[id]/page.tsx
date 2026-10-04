@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TUTOR_COLUMNS, rowToTutor, type TutorRow } from "@/lib/tutors";
 import { ContactButton } from "@/components/contact-button";
 import { ReviewsSection } from "@/components/reviews-section";
+import { getStudentsOpen } from "@/lib/site-settings";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -15,7 +16,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
 
   const { data } = await supabase
     .from("tutors")
-    .select(`${TUTOR_COLUMNS}, student_id`)
+    .select(`${TUTOR_COLUMNS}, student_id, paid_until`)
     .eq("id", id)
     .maybeSingle();
 
@@ -29,6 +30,33 @@ export default async function TutorProfilePage({ params }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
   const isOwnProfile = user?.id === (data as { student_id: string }).student_id;
+
+  // What the owner sees about whether their listing is live.
+  let listingNote = "";
+  if (isOwnProfile) {
+    const studentsOpen = await getStudentsOpen();
+    const paidUntil = (data as { paid_until: string | null }).paid_until;
+    if (tutor.status === "pending") {
+      listingNote = "Your application is under review.";
+    } else if (tutor.status === "rejected") {
+      listingNote = "Your application wasn't approved. Contact us if you think this is a mistake.";
+    } else if (!paidUntil) {
+      listingNote = studentsOpen
+        ? "Your listing isn't active right now. Contact us to renew."
+        : "You're approved! Your free month starts the day we open the site to students.";
+    } else if (new Date(paidUntil) > new Date()) {
+      listingNote = `Your listing is live until ${new Date(
+        paidUntil
+      ).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })}.`;
+    } else {
+      listingNote =
+        "Your listing has ended and is hidden from students. Contact us to renew.";
+    }
+  }
 
   const initials = tutor.name
     .split(" ")
@@ -79,6 +107,9 @@ export default async function TutorProfilePage({ params }: PageProps) {
           {isOwnProfile ? (
             <div className="flex flex-col gap-3 border border-stone rounded-lg p-4 text-center">
               <p className="text-sm text-slate">This is your own listing.</p>
+              {listingNote && (
+                <p className="text-xs text-ink">{listingNote}</p>
+              )}
               <Link
                 href={`/tutors/${tutor.id}/edit`}
                 className="rounded-full bg-ink text-paper px-6 py-3 text-sm font-medium"

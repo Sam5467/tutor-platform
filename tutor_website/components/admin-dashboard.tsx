@@ -19,7 +19,7 @@ type TutorRow = {
   price: number | string;
   bio: string | null;
   status: Status;
-  is_paid: boolean;
+  paid_until: string | null;
   created_at: string;
   profile_picture_path: string | null;
   gpa: number | null;
@@ -40,14 +40,24 @@ export function AdminDashboard() {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<Status | "all">("all");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [studentsOpen, setStudentsOpen] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     async function loadTutors() {
       const supabase = createClient();
+
+      const { data: settings } = await supabase
+        .from("site_settings")
+        .select("students_open")
+        .maybeSingle();
+      setStudentsOpen(!!settings?.students_open);
+
       const { data, error: fetchError } = await supabase
         .from("tutors")
         .select(
-          "id, full_name, faculty, major, year, courses, price, bio, status, is_paid, created_at, profile_picture_path, tutor_private(gpa, phone, transcript_path)"
+          "id, full_name, faculty, major, year, courses, price, bio, status, paid_until, created_at, profile_picture_path, tutor_private(gpa, phone, transcript_path)"
         )
         .order("created_at", { ascending: false });
 
@@ -70,7 +80,7 @@ export function AdminDashboard() {
               price: t.price,
               bio: t.bio,
               status: t.status,
-              is_paid: t.is_paid,
+              paid_until: t.paid_until,
               created_at: t.created_at,
               profile_picture_path: t.profile_picture_path,
               gpa: priv?.gpa ?? null,
@@ -184,21 +194,46 @@ export function AdminDashboard() {
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
-  const togglePayment = async (tutor: TutorRow) => {
-    const next = !tutor.is_paid;
-    if (
-      !window.confirm(
-        `Mark ${tutor.full_name} as ${next ? "paid" : "unpaid"}?`
-      )
-    ) {
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+
+  const isActive = (t: TutorRow) =>
+    !!t.paid_until && new Date(t.paid_until) > new Date();
+
+  const listingLabel = (t: TutorRow) => {
+    if (!t.paid_until) return t.status === "approved" ? "Not started" : "—";
+    return isActive(t)
+      ? `Until ${formatDate(t.paid_until)}`
+      : `Ended ${formatDate(t.paid_until)}`;
+  };
+
+  // Gives the tutor 30 more days, counted from today or from the end of
+  // their current period if it hasn't run out yet.
+  const extendListing = async (tutor: TutorRow) => {
+    if (!window.confirm(`Give ${tutor.full_name} 30 more days of listing?`)) {
       return;
     }
 
+    const start = isActive(tutor) ? new Date(tutor.paid_until!) : new Date();
+    const next = new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000);
+    await saveListingEnd(tutor, next.toISOString());
+  };
+
+  const endListing = async (tutor: TutorRow) => {
+    if (!window.confirm(`End ${tutor.full_name}'s listing now?`)) return;
+    await saveListingEnd(tutor, new Date().toISOString());
+  };
+
+  const saveListingEnd = async (tutor: TutorRow, paidUntil: string) => {
     setError("");
     const supabase = createClient();
     const { error: updateError } = await supabase
       .from("tutors")
-      .update({ is_paid: next })
+      .update({ paid_until: paidUntil })
       .eq("id", tutor.id);
 
     if (updateError) {
@@ -207,8 +242,45 @@ export function AdminDashboard() {
     }
 
     setTutors((prev) =>
-      prev.map((t) => (t.id === tutor.id ? { ...t, is_paid: next } : t))
+      prev.map((t) =>
+        t.id === tutor.id ? { ...t, paid_until: paidUntil } : t
+      )
     );
+  };
+
+  const switchStudentsOpen = async (open: boolean) => {
+    const question = open
+      ? "Open the site to students?\n\nStudents will be able to search for tutors, and every approved tutor gets 30 free days starting today."
+      : "Close the site to students again?\n\nTutors will be hidden from search until you reopen it. Their listing dates don't change.";
+    if (!window.confirm(question)) return;
+
+    setError("");
+    setNotice("");
+    setSwitching(true);
+    const supabase = createClient();
+    const { data: granted, error: switchError } = await supabase.rpc(
+      "set_students_open",
+      { p_open: open }
+    );
+    setSwitching(false);
+
+    if (switchError) {
+      setError(switchError.message);
+      return;
+    }
+
+    setStudentsOpen(open);
+    if (open) {
+      setNotice(
+        `The site is now open to students. ${granted ?? 0} tutor${
+          granted === 1 ? "" : "s"
+        } received a free month.`
+      );
+      // Reload the dates that were just granted.
+      window.location.reload();
+    } else {
+      setNotice("The site is closed to students.");
+    }
   };
 
   if (loading) {
@@ -227,6 +299,32 @@ export function AdminDashboard() {
       </p>
 
       {error && <p className="text-sm text-red-600 mb-6">{error}</p>}
+      {notice && <p className="text-sm text-green-700 mb-6">{notice}</p>}
+
+      <div className="border border-stone rounded-lg p-5 mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="font-display text-lg text-ink">
+            {studentsOpen ? "Open to students" : "Tutors only"}
+          </p>
+          <p className="text-sm text-slate">
+            {studentsOpen
+              ? "Students can search for tutors. Only tutors whose listing is active are shown."
+              : "Students can't search yet. Opening the site gives every approved tutor 30 free days."}
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={switching}
+          onClick={() => switchStudentsOpen(!studentsOpen)}
+          className={`rounded-full px-6 py-2 text-sm font-medium shrink-0 disabled:opacity-60 ${
+            studentsOpen
+              ? "border border-stone text-slate"
+              : "bg-ink text-paper"
+          }`}
+        >
+          {studentsOpen ? "Close to students" : "Open to students"}
+        </button>
+      </div>
 
       <div className="flex flex-col lg:flex-row gap-10">
         <div className="flex-1 min-w-0">
@@ -261,7 +359,7 @@ export function AdminDashboard() {
                   <span>Major</span>
                   <span>GPA / Transcript</span>
                   <span>Status</span>
-                  <span>Payment</span>
+                  <span>Listing</span>
                   <span>Actions</span>
                 </div>
                 {visibleTutors.map((tutor) => (
@@ -313,17 +411,35 @@ export function AdminDashboard() {
                       >
                         {tutor.status}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => togglePayment(tutor)}
-                        className={
-                          tutor.is_paid
-                            ? "text-green-700 underline text-left"
-                            : "text-red-600 underline text-left"
-                        }
-                      >
-                        {tutor.is_paid ? "paid" : "unpaid"}
-                      </button>
+                      <div className="flex flex-col items-start gap-1">
+                        <span
+                          className={
+                            isActive(tutor) ? "text-green-700" : "text-slate"
+                          }
+                        >
+                          {listingLabel(tutor)}
+                        </span>
+                        {tutor.status === "approved" && (
+                          <span className="flex gap-2 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => extendListing(tutor)}
+                              className="text-ink underline"
+                            >
+                              +30 days
+                            </button>
+                            {isActive(tutor) && (
+                              <button
+                                type="button"
+                                onClick={() => endListing(tutor)}
+                                className="text-red-600 underline"
+                              >
+                                End now
+                              </button>
+                            )}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         {tutor.status !== "approved" && (
                           <button

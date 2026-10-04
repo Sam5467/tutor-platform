@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { HeaderShell } from "@/components/header-shell";
+import { getStudentsOpen } from "@/lib/site-settings";
 
 export async function Header() {
+  const studentsOpen = await getStudentsOpen();
   const supabase = await createClient();
   const {
     data: { user },
@@ -9,6 +11,7 @@ export async function Header() {
 
   let approvedTutorId: string | null = null;
   let userName: string | null = null;
+  let isAdmin = false;
 
   if (user) {
     const [{ data: tutor }, { data: student }] = await Promise.all([
@@ -17,12 +20,17 @@ export async function Header() {
         .select("id, status")
         .eq("student_id", user.id)
         .maybeSingle(),
-      supabase.from("students").select("full_name").eq("id", user.id).single(),
+      supabase
+        .from("students")
+        .select("full_name, is_admin")
+        .eq("id", user.id)
+        .single(),
     ]);
     if (tutor?.status === "approved") {
       approvedTutorId = tutor.id;
     }
     userName = student?.full_name || null;
+    isAdmin = !!student?.is_admin;
   }
 
   return (
@@ -30,6 +38,8 @@ export async function Header() {
       isLoggedIn={!!user}
       approvedTutorId={approvedTutorId}
       userName={userName}
+      // "Find a tutor" appears once the site is open (admins can always see it).
+      showFindTutor={studentsOpen || isAdmin}
     />
   );
 }

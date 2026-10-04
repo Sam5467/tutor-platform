@@ -1,146 +1,45 @@
-"use client";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { getStudentsOpen } from "@/lib/site-settings";
+import { TutorsBrowser } from "@/components/tutors-browser";
 
-import { useEffect, useState } from "react";
-import { FacultyPicker } from "@/components/faculty-picker";
-import { SubFacultyPicker } from "@/components/sub-faculty-picker";
-import { MajorPicker } from "@/components/major-picker";
-import { TutorGrid } from "@/components/tutor-grid";
-import { faculties } from "@/lib/faculties";
-import { createClient } from "@/lib/supabase/client";
-import {
-  TUTOR_COLUMNS,
-  rowToTutor,
-  type Tutor,
-  type TutorRow,
-} from "@/lib/tutors";
+export default async function TutorsPage() {
+  const studentsOpen = await getStudentsOpen();
 
-export default function TutorsPage() {
-  const [faculty, setFaculty] = useState<string | null>(null);
-  const [subFaculty, setSubFaculty] = useState<string | null>(null);
-  const [major, setMajor] = useState<string | null>(null);
-  const [tutors, setTutors] = useState<Tutor[] | null>(null);
-  const [fetchError, setFetchError] = useState("");
-
-  useEffect(() => {
-    if (!faculty || !major) return;
-    const selectedFaculty = faculty;
-    const selectedMajor = major;
-
-    async function loadTutors() {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("tutors")
-        .select(TUTOR_COLUMNS)
-        .eq("status", "approved")
-        .eq("faculty", selectedFaculty)
-        .eq("major", selectedMajor)
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        setFetchError(error.message);
-        setTutors([]);
-        return;
-      }
-      const loaded = (data as TutorRow[]).map(rowToTutor);
-
-      // Average rating per tutor, from the public reviews.
-      if (loaded.length > 0) {
-        const { data: reviewRows } = await supabase
-          .from("reviews")
-          .select("tutor_id, rating")
-          .in(
-            "tutor_id",
-            loaded.map((t) => t.id)
-          );
-
-        const totals: Record<string, { sum: number; count: number }> = {};
-        for (const r of reviewRows ?? []) {
-          const entry = (totals[r.tutor_id] ??= { sum: 0, count: 0 });
-          entry.sum += r.rating;
-          entry.count += 1;
-        }
-        for (const t of loaded) {
-          const entry = totals[t.id];
-          if (entry) {
-            t.rating = entry.sum / entry.count;
-            t.reviewCount = entry.count;
-          }
-        }
-      }
-
-      setFetchError("");
-      setTutors(loaded);
+  // Admins can still look around before the site opens, to check the page.
+  let isAdmin = false;
+  if (!studentsOpen) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("students")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+      isAdmin = !!data?.is_admin;
     }
-
-    loadTutors();
-  }, [faculty, major]);
-
-  const facultyData = faculty
-    ? faculties.find((f) => f.name === faculty)
-    : null;
-  const needsSubFacultyStep = (facultyData?.subFaculties.length ?? 0) > 1;
-  const totalSteps = needsSubFacultyStep ? 3 : 2;
-
-  if (!faculty) {
-    return <FacultyPicker onSelect={setFaculty} />;
   }
 
-  const effectiveSubFaculty =
-    subFaculty ??
-    (!needsSubFacultyStep ? facultyData?.subFaculties[0]?.name ?? null : null);
-
-  if (needsSubFacultyStep && !subFaculty) {
+  if (!studentsOpen && !isAdmin) {
     return (
-      <SubFacultyPicker
-        faculty={faculty}
-        onSelect={setSubFaculty}
-        onBack={() => setFaculty(null)}
-      />
-    );
-  }
-
-  if (!major) {
-    return (
-      <MajorPicker
-        faculty={faculty}
-        subFaculty={effectiveSubFaculty!}
-        step={needsSubFacultyStep ? 3 : 2}
-        totalSteps={totalSteps}
-        onSelect={(m) => {
-          setTutors(null);
-          setMajor(m);
-        }}
-        onBack={() => {
-          if (needsSubFacultyStep) {
-            setSubFaculty(null);
-          } else {
-            setFaculty(null);
-          }
-        }}
-      />
-    );
-  }
-
-  if (tutors === null) {
-    return (
-      <div className="max-w-6xl mx-auto py-16 px-4">
-        <p className="text-slate text-center">Loading tutors...</p>
+      <div className="max-w-lg mx-auto py-24 px-4 text-center">
+        <h1 className="font-display text-2xl text-ink mb-4">Coming soon</h1>
+        <p className="text-slate mb-6">
+          We're getting our first tutors ready. Tutor search will open to
+          students very soon.
+        </p>
+        <Link
+          href="/become-a-tutor"
+          className="inline-block rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium"
+        >
+          Become a tutor
+        </Link>
       </div>
     );
   }
 
-  return (
-    <>
-      {fetchError && (
-        <p className="text-sm text-red-600 text-center pt-8">{fetchError}</p>
-      )}
-      <TutorGrid
-        tutors={tutors}
-        onBack={() => {
-          setTutors(null);
-          setMajor(null);
-        }}
-      />
-    </>
-  );
+  return <TutorsBrowser />;
 }

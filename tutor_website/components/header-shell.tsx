@@ -8,12 +8,14 @@ type HeaderShellProps = {
   isLoggedIn: boolean;
   approvedTutorId?: string | null;
   userName?: string | null;
+  showFindTutor?: boolean;
 };
 
 export function HeaderShell({
   isLoggedIn,
   approvedTutorId = null,
   userName = null,
+  showFindTutor = true,
 }: HeaderShellProps) {
   const pathname = usePathname();
   const isLanding = pathname === "/";
@@ -23,7 +25,7 @@ export function HeaderShell({
 
   const navLinks = (
     <>
-      {!approvedTutorId && (
+      {!approvedTutorId && showFindTutor && (
         <Link href="/tutors" onClick={() => setMenuOpen(false)}>
           Find a tutor
         </Link>
