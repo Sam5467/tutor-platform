@@ -16,7 +16,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Find a tutor for your course",
+  title: {
+    default: "Passalong",
+    template: "%s | Passalong",
+  },
   description: "Senior USEK students helping new students pass their courses.",
 };
 

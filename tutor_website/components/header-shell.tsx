@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Pacifico } from "next/font/google";
+
+const pacifico = Pacifico({
+  subsets: ["latin"],
+  weight: ["400"],
+});
 
 type HeaderShellProps = {
   isLoggedIn: boolean;
@@ -79,8 +85,10 @@ export function HeaderShell({
         isLanding ? "border-stone" : "bg-ink border-ink/20"
       }`}
     >
-      <Link href="/" className={`font-display text-lg ${textColor}`}>
-        USEK Tutors
+      {/* Two-tone logo: "Pass" in the serif font, "along" in the gold script. */}
+      <Link href="/" className={`text-xl ${textColor}`} aria-label="Passalong">
+        <span className="font-display">Pass</span>
+        <span className={`${pacifico.className} text-brass`}>along</span>
       </Link>
 
       {/* Desktop nav */}

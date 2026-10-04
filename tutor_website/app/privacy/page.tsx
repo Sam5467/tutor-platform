@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       <p className="text-sm text-slate mb-8">Last updated: 4 October 2026</p>
 
       <p className="text-ink mb-4">
-        USEK Tutors is an independent, student-run platform that connects
+        Passalong is an independent, student-run platform that connects
         senior USEK students who offer tutoring with newer students who need
         help. It is not an official service of USEK. This page explains what
         personal information we collect, why, who can see it, and what choices
@@ -27,8 +27,7 @@ export default function PrivacyPage() {
       <ul className="list-disc pl-6 text-ink mb-4 flex flex-col gap-1">
         <li>Your first and last name and your email address.</li>
         <li>
-          Your password, which we never see. It is stored in a scrambled form
-          by our login provider.
+          Your password, which we never see.
         </li>
         <li>
           Which tutors you contacted through the site, and when. Reviews you
@@ -68,11 +67,6 @@ export default function PrivacyPage() {
           <strong>Your transcript and GPA</strong> can be seen only by you and
           the site administrators, who use them to check your application.
           They are never shown to other students.
-        </li>
-        <li>
-          <strong>Your phone number</strong> is not shown on your listing. It
-          is given to a logged-in student only when they press “Contact on
-          WhatsApp” on your profile. Each such contact is recorded.
         </li>
         <li>
           <strong>Your listing</strong> (name, photo, faculty, major, year,

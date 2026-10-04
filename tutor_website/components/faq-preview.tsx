@@ -12,7 +12,7 @@ const faqs = [
   {
     question: "How do I pay my tutor?",
     answer:
-      "You and your tutor arrange payment directly. USEK Tutors isn't involved in the payment.",
+      "You and your tutor arrange payment directly. Passalong isn't involved in the payment.",
   },
   {
     question: "How are tutors verified?",

@@ -13,7 +13,7 @@ export default function TermsPage() {
       <p className="text-sm text-slate mb-8">Last updated: 4 October 2026</p>
 
       <p className="text-ink mb-4">
-        By creating an account or using USEK Tutors, you agree to these terms
+        By creating an account or using Passalong, you agree to these terms
         and to our{" "}
         <Link href="/privacy" className="text-brass underline">
           Privacy Policy
@@ -22,10 +22,10 @@ export default function TermsPage() {
       </p>
 
       <h2 className="font-display text-lg text-ink mt-8 mb-3">
-        1. What USEK Tutors is
+        1. What Passalong is
       </h2>
       <p className="text-ink mb-4">
-        USEK Tutors is an independent, student-run platform that helps senior
+        Passalong is an independent, student-run platform that helps senior
         USEK students who offer tutoring connect with newer students. We are
         not a party to any arrangement made between a tutor and a student.
         Sessions, scheduling and any payment for sessions happen directly
@@ -118,10 +118,6 @@ export default function TermsPage() {
           A listing period starts as soon as it is paid, so fees are not
           refundable once the period has started, unless we decide otherwise
           or the law requires it.
-        </li>
-        <li>
-          We may change the fee in the future. We will announce any change on
-          the site before it applies to you.
         </li>
       </ul>
 
