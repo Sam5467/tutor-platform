@@ -134,7 +134,7 @@ export default function ShapeHero({
               </span>
               <br />
               <span
-                className={cn("text-brass", pacifico.className)}
+                className={cn("text-brass text-[0.8em]", pacifico.className)}
               >
                 {title2}
               </span>
