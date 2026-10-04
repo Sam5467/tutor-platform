@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { faculties } from "@/lib/faculties";
 import { createClient } from "@/lib/supabase/client";
 import { ReviewsSection } from "@/components/reviews-section";
@@ -499,6 +500,19 @@ export default function BecomeATutorPage() {
         >
           {loading ? "Submitting..." : "Submit for review"}
         </button>
+
+        <p className="text-xs text-slate text-center">
+          By submitting you confirm your information is true and you agree to
+          our{" "}
+          <Link href="/terms" className="underline">
+            Terms
+          </Link>{" "}
+          (including the listing fee) and{" "}
+          <Link href="/privacy" className="underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
 
       {showConfirm && (

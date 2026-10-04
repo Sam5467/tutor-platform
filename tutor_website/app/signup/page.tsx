@@ -186,6 +186,18 @@ export default function StudentSignupPage() {
           {loading ? "Creating account..." : "Create account"}
         </button>
 
+        <p className="text-xs text-slate text-center">
+          By creating an account you agree to our{" "}
+          <Link href="/terms" className="underline">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+
         <p className="text-sm text-slate text-center">
           Already have an account?{" "}
           <Link href="/login" className="text-brass underline">
