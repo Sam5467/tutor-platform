@@ -38,7 +38,11 @@ export default async function Home() {
           <ShapeHero
             title1="Welcome back,"
             title2={firstName || "tutor"}
-            tagline="Your tutor card is live. Students can find you and reach out."
+            tagline={
+              studentsOpen
+                ? "Your tutor card is live. Students can find you and reach out."
+                : "You’re approved. We’ll open the site to students soon, and your free period starts that day."
+            }
           />
         ) : studentsOpen ? (
           <ShapeHero title1="Find a tutor for" title2="your course" />
