@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { dbErrorMessage } from "@/lib/errors";
 
 type ContactButtonProps = {
   tutorId: string;
@@ -56,7 +57,13 @@ export function ContactButton({ tutorId }: ContactButtonProps) {
 
     if (contactError || !phone) {
       tab?.close();
-      setError(contactError?.message ?? "Couldn't get contact details.");
+      setError(
+        dbErrorMessage(
+          contactError,
+          {},
+          "We couldn't get the contact details. Please try again."
+        )
+      );
       return;
     }
 

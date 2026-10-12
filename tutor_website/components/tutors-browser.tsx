@@ -7,6 +7,7 @@ import { MajorPicker } from "@/components/major-picker";
 import { TutorGrid } from "@/components/tutor-grid";
 import { faculties } from "@/lib/faculties";
 import { createClient } from "@/lib/supabase/client";
+import { dbErrorMessage } from "@/lib/errors";
 import {
   TUTOR_COLUMNS,
   rowToTutor,
@@ -37,7 +38,13 @@ export function TutorsBrowser() {
         .order("created_at", { ascending: true });
 
       if (error) {
-        setFetchError(error.message);
+        setFetchError(
+          dbErrorMessage(
+            error,
+            {},
+            "We couldn't load the tutors. Please try again."
+          )
+        );
         setTutors([]);
         return;
       }

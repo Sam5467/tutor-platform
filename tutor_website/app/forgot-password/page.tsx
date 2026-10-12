@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
+import { authErrorMessage } from "@/lib/errors";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -39,11 +40,10 @@ export default function ForgotPasswordPage() {
       // Each check can only be used once, so ask for a fresh one.
       setCaptchaReset((c) => c + 1);
       setError(
-        resetError.code === "captcha_failed"
-          ? "The human check failed. Please try again."
-          : resetError.status === 429
-          ? "Too many requests. Please wait a few minutes and try again."
-          : "We couldn't send the email. Please try again later."
+        authErrorMessage(
+          resetError,
+          "We couldn't send the email. Please try again later."
+        )
       );
       return;
     }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { dbErrorMessage } from "@/lib/errors";
 
 type Review = {
   id: string;
@@ -116,7 +117,12 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
     setSubmitting(false);
 
     if (insertError) {
-      setError(insertError.message);
+      setError(
+        dbErrorMessage(insertError, {
+          "23505": "You've already reviewed this tutor.",
+          "42501": "You can review a tutor after you've contacted them.",
+        })
+      );
       return;
     }
 
@@ -140,7 +146,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
       .eq("id", review.id);
 
     if (deleteError) {
-      setError(deleteError.message);
+      setError(dbErrorMessage(deleteError));
       return;
     }
 

@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
+import { authErrorMessage } from "@/lib/errors";
 
 function LoginForm() {
   const router = useRouter();
@@ -37,7 +38,10 @@ function LoginForm() {
     setCaptchaReset((c) => c + 1);
     setResendMessage(
       resendError
-        ? "We couldn't send the email. Please try again in a few minutes."
+        ? authErrorMessage(
+            resendError,
+            "We couldn't send the email. Please try again in a few minutes."
+          )
         : "Confirmation email sent. Please check your inbox."
     );
   };
@@ -65,16 +69,9 @@ function LoginForm() {
     if (signInError) {
       // Each check can only be used once, so ask for a fresh one.
       setCaptchaReset((c) => c + 1);
-      const notConfirmed = signInError.code === "email_not_confirmed";
-      setUnconfirmed(notConfirmed);
+      setUnconfirmed(signInError.code === "email_not_confirmed");
       setResendMessage("");
-      setError(
-        notConfirmed
-          ? "Please confirm your email first. We sent you a link when you signed up."
-          : signInError.code === "captcha_failed"
-          ? "The human check failed. Please try again."
-          : "Incorrect email or password."
-      );
+      setError(authErrorMessage(signInError));
       return;
     }
 

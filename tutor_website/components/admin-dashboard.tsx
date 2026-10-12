@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { dbErrorMessage } from "@/lib/errors";
 import { BarChart } from "@/components/charts/bar-chart";
 import { Bar } from "@/components/charts/bar";
 import { Grid } from "@/components/charts/grid";
@@ -62,7 +63,7 @@ export function AdminDashboard() {
         .order("created_at", { ascending: false });
 
       if (fetchError) {
-        setError(fetchError.message);
+        setError(dbErrorMessage(fetchError, {}, "We couldn't load the tutors. Please reload the page."));
       } else {
         // GPA, phone and transcript live in a separate private table; flatten them.
         setTutors(
@@ -129,7 +130,7 @@ export function AdminDashboard() {
       .eq("id", tutor.id);
 
     if (updateError) {
-      setError(updateError.message);
+      setError(dbErrorMessage(updateError));
       return;
     }
 
@@ -156,7 +157,7 @@ export function AdminDashboard() {
       .select("id");
 
     if (deleteError) {
-      setError(deleteError.message);
+      setError(dbErrorMessage(deleteError));
       return;
     }
     if (!deleted || deleted.length === 0) {
@@ -187,7 +188,8 @@ export function AdminDashboard() {
       .createSignedUrl(path, 60);
 
     if (urlError || !data) {
-      setError(urlError?.message ?? "Couldn't open the transcript.");
+      console.error("Transcript link error:", urlError);
+      setError("Couldn't open the transcript. Please try again.");
       return;
     }
 
@@ -237,7 +239,7 @@ export function AdminDashboard() {
       .eq("id", tutor.id);
 
     if (updateError) {
-      setError(updateError.message);
+      setError(dbErrorMessage(updateError));
       return;
     }
 
@@ -265,7 +267,7 @@ export function AdminDashboard() {
     setSwitching(false);
 
     if (switchError) {
-      setError(switchError.message);
+      setError(dbErrorMessage(switchError));
       return;
     }
 

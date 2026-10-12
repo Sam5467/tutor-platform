@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
+import { ResendConfirmation } from "@/components/resend-confirmation";
+import { ALREADY_REGISTERED_MESSAGE, authErrorMessage } from "@/lib/errors";
 
 export default function StudentSignupPage() {
   const router = useRouter();
@@ -14,6 +16,8 @@ export default function StudentSignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  // True when the email already has an account, so we can offer log in / reset.
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   // True when Supabase has "Confirm email" switched on: the account exists but
@@ -25,6 +29,7 @@ export default function StudentSignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setAlreadyRegistered(false);
 
     if (password !== confirmPassword) {
       setError("Passwords don't match.");
@@ -54,14 +59,21 @@ export default function StudentSignupPage() {
     if (signUpError) {
       // Each check can only be used once, so ask for a fresh one.
       setCaptchaReset((c) => c + 1);
-      setError(
-        signUpError.code === "captcha_failed"
-          ? "The human check failed. Please try again."
-          : signUpError.code === "over_email_send_rate_limit" ||
-            signUpError.status === 429
-          ? "We've sent a lot of emails recently. Please wait a little while and try again."
-          : signUpError.message
+      setAlreadyRegistered(
+        signUpError.code === "user_already_exists" ||
+          signUpError.code === "email_exists"
       );
+      setError(authErrorMessage(signUpError));
+      return;
+    }
+
+    // With "Confirm email" switched on, Supabase doesn't raise an error for an
+    // email that already has an account. It returns a user with no
+    // "identities" instead, which is how we tell, so we can stop them here.
+    if (data.user && data.user.identities?.length === 0) {
+      setCaptchaReset((c) => c + 1);
+      setAlreadyRegistered(true);
+      setError(ALREADY_REGISTERED_MESSAGE);
       return;
     }
 
@@ -76,21 +88,9 @@ export default function StudentSignupPage() {
           Check your email
         </h1>
         <p className="text-slate">
-          We've sent a confirmation link to{" "}
+          We’ve sent a confirmation link to{" "}
           <span className="text-ink">{email}</span>. Click it to activate your
-          account, then log in. It may take a minute, and it's worth checking
-          your spam folder.
-        </p>
-        <p className="text-sm text-slate mt-4">
-          Already signed up with this email? You won't get a new link. Just{" "}
-          <Link href="/login" className="text-brass underline">
-            log in
-          </Link>
-          , or use{" "}
-          <Link href="/forgot-password" className="text-brass underline">
-            Forgot your password
-          </Link>
-          .
+          account, then log in.
         </p>
         <Link
           href="/login"
@@ -98,6 +98,14 @@ export default function StudentSignupPage() {
         >
           Go to log in
         </Link>
+
+        <ResendConfirmation
+          email={email}
+          onChangeEmail={() => {
+            setSubmitted(false);
+            setNeedsConfirmation(false);
+          }}
+        />
       </div>
     );
   }
@@ -191,6 +199,18 @@ export default function StudentSignupPage() {
         <Turnstile onToken={setCaptchaToken} resetCount={captchaReset} />
 
         {error && <p className="text-sm text-red-600">{error}</p>}
+        {alreadyRegistered && (
+          <p className="text-sm text-slate">
+            <Link href="/login" className="text-brass underline">
+              Log in
+            </Link>{" "}
+            or{" "}
+            <Link href="/forgot-password" className="text-brass underline">
+              reset your password
+            </Link>
+            .
+          </p>
+        )}
 
         <button
           type="submit"

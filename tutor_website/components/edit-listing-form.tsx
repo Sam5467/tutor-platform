@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { normalizePhone } from "@/lib/phone";
+import { dbErrorMessage } from "@/lib/errors";
 import { PHOTO_RULE, buildUploadPath, validateUpload } from "@/lib/uploads";
 
 type EditListingFormProps = {
@@ -102,7 +103,7 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
       if (newPhotoPath) {
         await supabase.storage.from("profile-pictures").remove([newPhotoPath]);
       }
-      setError(saveError.message);
+      setError(dbErrorMessage(saveError));
       setSaving(false);
       return;
     }

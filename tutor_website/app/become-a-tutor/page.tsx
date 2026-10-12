@@ -6,6 +6,7 @@ import { faculties } from "@/lib/faculties";
 import { createClient } from "@/lib/supabase/client";
 import { ReviewsSection } from "@/components/reviews-section";
 import { normalizePhone } from "@/lib/phone";
+import { dbErrorMessage } from "@/lib/errors";
 import {
   PHOTO_RULE,
   TRANSCRIPT_RULE,
@@ -207,9 +208,9 @@ export default function BecomeATutorPage() {
 
     if (insertError) {
       setError(
-        insertError.code === "23505"
-          ? "You've already applied to be a tutor."
-          : insertError.message
+        dbErrorMessage(insertError, {
+          "23505": "You've already applied to be a tutor.",
+        })
       );
       return;
     }
