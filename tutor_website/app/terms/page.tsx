@@ -10,7 +10,7 @@ export default function TermsPage() {
       <h1 className="font-display text-2xl text-ink mb-2">
         Terms of Service
       </h1>
-      <p className="text-sm text-slate mb-8">Last updated: 4 October 2026</p>
+      <p className="text-sm text-slate mb-8">Last updated: 12 October 2026</p>
 
       <p className="text-ink mb-4">
         By creating an account or using Passalong, you agree to these terms
@@ -103,12 +103,12 @@ export default function TermsPage() {
         </li>
         <li>
           After the free period, staying listed costs 10 US dollars for each
-          30-day listing period. Each successful payment adds 30 days to your
-          listing. You can renew once your current period has ended.
+          30-day listing period. Each payment we receive adds 30 days to your
+          listing.
         </li>
         <li>
-          You can pay on the website with Whish Money or by card. Payments are
-          handled by those providers; we do not see or store your card details.
+          Payment is arranged directly with us and is not made through the
+          website. We will tell you how to pay.
         </li>
         <li>
           If your listing period ends without renewal, your listing is hidden

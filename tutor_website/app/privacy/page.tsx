@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   return (
     <div className="max-w-2xl mx-auto py-16 px-4">
       <h1 className="font-display text-2xl text-ink mb-2">Privacy Policy</h1>
-      <p className="text-sm text-slate mb-8">Last updated: 4 October 2026</p>
+      <p className="text-sm text-slate mb-8">Last updated: 12 October 2026</p>
 
       <p className="text-ink mb-4">
         Passalong is an independent, student-run platform that connects
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
       <p className="text-ink mb-4">
         To create and protect accounts, to review and approve tutor
         applications, to let students find and contact tutors, to show
-        reviews, to take and record listing payments, to send emails about your
+        reviews, to keep track of listing fees, to send emails about your
         account (such as confirming your email address or resetting your
         password), and to prevent abuse. We do not sell your information and we
         do not show advertising.
@@ -118,13 +118,12 @@ export default function PrivacyPage() {
         <li>
           <strong>An email service</strong> sends account emails.
         </li>
-        <li>
-          <strong>Payment providers</strong> (Whish Money and a card payment
-          provider) process tutors’ listing payments. We never see or store
-          your card number. We only record whether and when a payment was
-          made.
-        </li>
       </ul>
+      <p className="text-ink mb-4">
+        Listing fees are arranged directly between tutors and us, not through
+        the website, so the site never handles payment details. We only record
+        until when your listing is paid.
+      </p>
       <p className="text-ink mb-4">
         We may also share information if the law requires it, or to protect the
         safety of our users.
