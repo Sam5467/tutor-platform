@@ -11,13 +11,12 @@
  */
 
 import { motion } from "motion/react";
-import { Pacifico } from "next/font/google";
+import { Dancing_Script } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const pacifico = Pacifico({
+const accentFont = Dancing_Script({
   subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-pacifico",
+  weight: ["700"],
 });
 
 function ElegantShape({
@@ -134,7 +133,7 @@ export default function ShapeHero({
               </span>
               <br />
               <span
-                className={cn("text-brass text-[0.8em]", pacifico.className)}
+                className={cn("text-brass", accentFont.className)}
               >
                 {title2}
               </span>
