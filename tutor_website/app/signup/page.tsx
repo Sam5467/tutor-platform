@@ -57,6 +57,9 @@ export default function StudentSignupPage() {
       setError(
         signUpError.code === "captcha_failed"
           ? "The human check failed. Please try again."
+          : signUpError.code === "over_email_send_rate_limit" ||
+            signUpError.status === 429
+          ? "We've sent a lot of emails recently. Please wait a little while and try again."
           : signUpError.message
       );
       return;
@@ -77,6 +80,17 @@ export default function StudentSignupPage() {
           <span className="text-ink">{email}</span>. Click it to activate your
           account, then log in. It may take a minute, and it's worth checking
           your spam folder.
+        </p>
+        <p className="text-sm text-slate mt-4">
+          Already signed up with this email? You won't get a new link. Just{" "}
+          <Link href="/login" className="text-brass underline">
+            log in
+          </Link>
+          , or use{" "}
+          <Link href="/forgot-password" className="text-brass underline">
+            Forgot your password
+          </Link>
+          .
         </p>
         <Link
           href="/login"
