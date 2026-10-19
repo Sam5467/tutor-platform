@@ -1,6 +1,7 @@
 "use client";
 
 import { FormSkeleton } from "@/components/skeleton";
+import { TEST_MODE } from "@/lib/test-mode";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { fields } from "@/lib/fields";
@@ -41,7 +42,7 @@ export default function BecomeATutorPage() {
   const [existingStatus, setExistingStatus] = useState<string | null>(null);
   const [existingTutorId, setExistingTutorId] = useState<string | null>(null);
   const [studentName, setStudentName] = useState("");
-  // Testing locally while logged out: the form works but nothing is saved.
+  // Test mode while logged out: the form works but nothing is saved.
   const [previewOnly, setPreviewOnly] = useState(false);
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function BecomeATutorPage() {
           .maybeSingle();
         setExistingStatus(data?.status ?? null);
         setExistingTutorId(data?.id ?? null);
-      } else if (process.env.NODE_ENV === "development") {
+      } else if (TEST_MODE || process.env.NODE_ENV === "development") {
         setPreviewOnly(true);
         setStudentName("Test Student");
       }

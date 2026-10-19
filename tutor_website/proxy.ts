@@ -32,11 +32,9 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Test mode: anyone can look at tutors without logging in (applying
-  // still needs an account). Locally, nothing needs a login.
-  const isLookingAround = request.nextUrl.pathname.startsWith("/tutors");
-  const loginFree =
-    process.env.NODE_ENV === "development" || (TEST_MODE && isLookingAround);
+  // Test mode (and locally): no login needed. Logged-out visitors can try
+  // the apply form, but nothing they submit is saved.
+  const loginFree = process.env.NODE_ENV === "development" || TEST_MODE;
 
   if (!user && !loginFree) {
     const loginUrl = new URL("/login", request.url);
