@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { dbErrorMessage } from "@/lib/errors";
 import { tutorMatchesCourse } from "@/lib/course-search";
 import { demoTutors } from "@/lib/demo-tutors";
+import { TEST_MODE } from "@/lib/test-mode";
 import { fields } from "@/lib/fields";
 import type { SessionMode } from "@/lib/session-modes";
 import {
@@ -106,8 +107,8 @@ export function TutorsBrowser() {
         }
       }
 
-      // Local preview only: add fake tutors (never on the live site).
-      if (process.env.NODE_ENV === "development") {
+      // Test mode: add the demo tutors.
+      if (TEST_MODE) {
         loaded.push(...demoTutors());
       }
 

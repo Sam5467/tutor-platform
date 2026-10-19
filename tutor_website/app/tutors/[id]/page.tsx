@@ -5,7 +5,8 @@ import { TUTOR_COLUMNS, rowToTutor, type TutorRow } from "@/lib/tutors";
 import { ContactButton } from "@/components/contact-button";
 import { BackButton } from "@/components/back-button";
 import { ReviewsSection } from "@/components/reviews-section";
-import { getStudentsOpen, LOCAL_PREVIEW } from "@/lib/site-settings";
+import { getStudentsOpen } from "@/lib/site-settings";
+import { TEST_MODE } from "@/lib/test-mode";
 import { demoTutors } from "@/lib/demo-tutors";
 import type { Tutor } from "@/lib/tutors";
 import { sessionModeLabel } from "@/lib/session-modes";
@@ -17,8 +18,8 @@ type PageProps = {
 export default async function TutorProfilePage({ params }: PageProps) {
   const { id } = await params;
 
-  // Testing locally: the demo tutors get a profile page too.
-  if (LOCAL_PREVIEW && id.startsWith("demo-")) {
+  // Test mode: the demo tutors get a profile page too.
+  if (TEST_MODE && id.startsWith("demo-")) {
     const demo = demoTutors().find((t) => t.id === id);
     if (!demo) notFound();
     return <TutorProfile tutor={demo} demo />;

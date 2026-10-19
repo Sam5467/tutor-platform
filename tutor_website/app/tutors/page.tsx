@@ -2,10 +2,13 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentsOpen } from "@/lib/site-settings";
+import { TEST_MODE } from "@/lib/test-mode";
 import { TutorsBrowser } from "@/components/tutors-browser";
 
 export default async function TutorsPage() {
-  const studentsOpen = await getStudentsOpen();
+  // Test mode: the tutor list can be opened (at /tutors) even while the site
+  // is tutors-only. The header and home page still follow the admin switch.
+  const studentsOpen = (await getStudentsOpen()) || TEST_MODE;
 
   // Admins can still look around before the site opens, to check the page.
   let isAdmin = false;

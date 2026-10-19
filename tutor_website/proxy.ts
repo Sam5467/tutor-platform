@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { TEST_MODE } from "@/lib/test-mode";
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -31,8 +32,13 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Testing locally (npm run dev): no login needed to look around.
-  if (!user && process.env.NODE_ENV !== "development") {
+  // Test mode: anyone can look at tutors without logging in (applying
+  // still needs an account). Locally, nothing needs a login.
+  const isLookingAround = request.nextUrl.pathname.startsWith("/tutors");
+  const loginFree =
+    process.env.NODE_ENV === "development" || (TEST_MODE && isLookingAround);
+
+  if (!user && !loginFree) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);

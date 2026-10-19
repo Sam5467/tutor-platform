@@ -1,5 +1,5 @@
-// Fake tutors for previewing the browse page locally (npm run dev only).
-// Never shown on the live site.
+// Fake tutors for previewing the browse page. Shown only while TEST_MODE
+// (lib/test-mode.ts) is on.
 import type { Tutor } from "@/lib/tutors";
 import type { SessionMode } from "@/lib/session-modes";
 import { universities } from "@/lib/universities";
