@@ -6,9 +6,11 @@ import { dbErrorMessage } from "@/lib/errors";
 
 type ContactButtonProps = {
   tutorId: string;
+  // Demo tutors (local testing) have no real number.
+  demo?: boolean;
 };
 
-export function ContactButton({ tutorId }: ContactButtonProps) {
+export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
   const [contacted, setContacted] = useState(false);
   const [checking, setChecking] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -38,6 +40,10 @@ export function ContactButton({ tutorId }: ContactButtonProps) {
 
   const handleContact = async () => {
     if (loading) return;
+    if (demo) {
+      setError("This is a demo tutor, so there's no WhatsApp number to open.");
+      return;
+    }
     setError("");
     setLoading(true);
 

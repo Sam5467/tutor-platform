@@ -50,7 +50,7 @@ export default async function Home() {
           // Tutors-only launch: invite tutors, no student search yet.
           <ShapeHero
             title1="Tutor your fellow"
-            title2="USEK students"
+            title2="students"
             tagline="Apply now and be one of our first tutors."
           />
         )}

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     default: "Passalong",
     template: "%s | Passalong",
   },
-  description: "Senior USEK students helping new students pass their courses.",
+  description: "Senior university students helping new students pass their courses.",
 };
 
 export default function RootLayout({

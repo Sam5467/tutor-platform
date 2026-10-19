@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { normalizePhone } from "@/lib/phone";
 import { dbErrorMessage } from "@/lib/errors";
+import { sessionModes, type SessionMode } from "@/lib/session-modes";
 import { PHOTO_RULE, buildUploadPath, validateUpload } from "@/lib/uploads";
 
 type EditListingFormProps = {
@@ -15,6 +16,7 @@ type EditListingFormProps = {
     price: number;
     bio: string;
     phone: string;
+    sessionMode: SessionMode;
     photoUrl: string | null;
   };
 };
@@ -26,6 +28,9 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
   const [price, setPrice] = useState(String(initial.price));
   const [bio, setBio] = useState(initial.bio);
   const [phone, setPhone] = useState(initial.phone);
+  const [sessionMode, setSessionMode] = useState<SessionMode>(
+    initial.sessionMode
+  );
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     initial.photoUrl
@@ -94,6 +99,7 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
         p_price: Number(price),
         p_bio: bio,
         p_phone: cleanedPhone,
+        p_session_mode: sessionMode,
         p_profile_picture_path: newPhotoPath,
       }
     );
@@ -123,7 +129,7 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
         Edit my listing
       </h1>
       <p className="text-sm text-slate text-center mb-8">
-        Your name, faculty, major, GPA and transcript can only be changed by an
+        Your name, university, field, major, GPA and transcript can only be changed by an
         admin. Contact us if something there needs updating.
       </p>
 
@@ -145,7 +151,7 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
 
         <div className="flex flex-col gap-1">
           <label htmlFor="edit-courses" className="text-sm text-slate">
-            Courses you can tutor (comma-separated)
+            Courses you can tutor (name or code, comma-separated)
           </label>
           <textarea
             id="edit-courses"
@@ -172,6 +178,24 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
             onChange={(e) => setPrice(e.target.value)}
             className="border border-stone rounded-lg py-2 px-4 text-ink"
           />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="edit-mode" className="text-sm text-slate">
+            How do you teach?
+          </label>
+          <select
+            id="edit-mode"
+            value={sessionMode}
+            onChange={(e) => setSessionMode(e.target.value as SessionMode)}
+            className="border border-stone rounded-lg py-2 px-4 text-ink"
+          >
+            {sessionModes.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="flex flex-col gap-1">

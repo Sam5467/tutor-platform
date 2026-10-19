@@ -16,7 +16,7 @@ export function HowItWorks() {
         <div className="bg-paper p-8 flex flex-col gap-3">
           <span className="font-display text-2xl text-brass">Contact</span>
           <p className="text-slate leading-relaxed">
-            Reach out directly - no middleman, no waiting for a match.
+            Reach out directly. No middleman, no waiting for a match.
           </p>
         </div>
         <div className="bg-paper p-8 flex flex-col gap-3">

@@ -1,8 +1,11 @@
 "use client";
 
+import { FormSkeleton } from "@/components/skeleton";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { faculties } from "@/lib/faculties";
+import { fields } from "@/lib/fields";
+import { universities } from "@/lib/universities";
+import { sessionModes, type SessionMode } from "@/lib/session-modes";
 import { createClient } from "@/lib/supabase/client";
 import { ReviewsSection } from "@/components/reviews-section";
 import { normalizePhone } from "@/lib/phone";
@@ -15,9 +18,11 @@ import {
 } from "@/lib/uploads";
 
 export default function BecomeATutorPage() {
+  const [university, setUniversity] = useState("");
   const [faculty, setFaculty] = useState("");
-  const [subFaculty, setSubFaculty] = useState("");
   const [major, setMajor] = useState("");
+  const [otherMajor, setOtherMajor] = useState("");
+  const [sessionMode, setSessionMode] = useState<SessionMode>("both");
   const [year, setYear] = useState("Senior");
   const [courses, setCourses] = useState("");
   const [price, setPrice] = useState("");
@@ -36,6 +41,8 @@ export default function BecomeATutorPage() {
   const [existingStatus, setExistingStatus] = useState<string | null>(null);
   const [existingTutorId, setExistingTutorId] = useState<string | null>(null);
   const [studentName, setStudentName] = useState("");
+  // Testing locally while logged out: the form works but nothing is saved.
+  const [previewOnly, setPreviewOnly] = useState(false);
 
   useEffect(() => {
     async function checkExisting() {
@@ -59,6 +66,9 @@ export default function BecomeATutorPage() {
           .maybeSingle();
         setExistingStatus(data?.status ?? null);
         setExistingTutorId(data?.id ?? null);
+      } else if (process.env.NODE_ENV === "development") {
+        setPreviewOnly(true);
+        setStudentName("Test Student");
       }
       setCheckingExisting(false);
     }
@@ -66,12 +76,9 @@ export default function BecomeATutorPage() {
     checkExisting();
   }, []);
 
-  const facultyData = faculties.find((f) => f.name === faculty);
-  const subFaculties = facultyData?.subFaculties ?? [];
-  const effectiveSubFaculty =
-    subFaculties.length === 1 ? subFaculties[0].name : subFaculty;
-  const majors =
-    subFaculties.find((s) => s.name === effectiveSubFaculty)?.majors ?? [];
+  const OTHER_MAJOR = "__other";
+  const majors = fields.find((f) => f.name === faculty)?.majors ?? [];
+  const finalMajor = major === OTHER_MAJOR ? otherMajor.trim() : major;
 
   const handleTranscriptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -122,6 +129,12 @@ export default function BecomeATutorPage() {
   const submitApplication = async () => {
     setError("");
     setShowConfirm(false);
+
+    if (previewOnly) {
+      setSubmitted(true);
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
@@ -191,8 +204,9 @@ export default function BecomeATutorPage() {
     const { error: insertError } = await supabase.rpc(
       "submit_tutor_application",
       {
+        p_university: university,
         p_faculty: faculty,
-        p_major: major,
+        p_major: finalMajor,
         p_year: year,
         p_courses: courses,
         p_price: Number(price),
@@ -201,6 +215,7 @@ export default function BecomeATutorPage() {
         p_gpa: Number(gpa),
         p_transcript_path: transcriptPath,
         p_profile_picture_path: photoPath,
+        p_session_mode: sessionMode,
       }
     );
 
@@ -219,11 +234,7 @@ export default function BecomeATutorPage() {
   };
 
   if (checkingExisting) {
-    return (
-      <div className="max-w-lg mx-auto py-24 px-4 text-center">
-        <p className="text-slate">Loading...</p>
-      </div>
-    );
+    return <FormSkeleton fields={9} />;
   }
 
   if (existingStatus === "approved" && existingTutorId && !submitted) {
@@ -276,58 +287,62 @@ export default function BecomeATutorPage() {
         Become a tutor
       </h1>
 
+      {previewOnly && (
+        <p className="text-xs text-ink bg-stone/40 rounded-lg p-3 text-center mb-4">
+          Test mode: you&apos;re not logged in, so nothing you submit here is
+          saved.
+        </p>
+      )}
+
       <p className="text-sm text-slate text-center mb-6">
         Applying as <span className="text-ink font-medium">{studentName}</span>
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div className="flex flex-col gap-1">
-          <label className="text-sm text-slate">Faculty</label>
+          <label className="text-sm text-slate">University</label>
+          <select
+            required
+            value={university}
+            onChange={(e) => setUniversity(e.target.value)}
+            className="border border-stone rounded-lg py-2 px-4 text-ink"
+          >
+            <option value="" disabled>
+              Select university
+            </option>
+            {universities.map((u) => (
+              <option key={u.short} value={u.short}>
+                {u.name} ({u.short})
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-slate">
+            You can&apos;t change this later, so choose carefully.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-slate">Field</label>
           <select
             required
             value={faculty}
             onChange={(e) => {
               setFaculty(e.target.value);
-              setSubFaculty("");
               setMajor("");
+              setOtherMajor("");
             }}
             className="border border-stone rounded-lg py-2 px-4 text-ink"
           >
             <option value="" disabled>
-              Select faculty
+              Select field
             </option>
-            {faculties.map((f) => (
+            {fields.map((f) => (
               <option key={f.name} value={f.name}>
                 {f.name}
               </option>
             ))}
           </select>
         </div>
-
-        {subFaculties.length > 1 && (
-          <div className="flex flex-col gap-1">
-            <label className="text-sm text-slate">Area</label>
-            <select
-              required
-              disabled={!faculty}
-              value={subFaculty}
-              onChange={(e) => {
-                setSubFaculty(e.target.value);
-                setMajor("");
-              }}
-              className="border border-ink/15 rounded-lg py-2 px-4 text-ink disabled:opacity-50"
-            >
-              <option value="" disabled>
-                Select area
-              </option>
-              {subFaculties.map((s) => (
-                <option key={s.name} value={s.name}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">Major</label>
@@ -346,7 +361,24 @@ export default function BecomeATutorPage() {
                 {m}
               </option>
             ))}
+            <option value={OTHER_MAJOR}>My major isn&apos;t listed</option>
           </select>
+          {major === OTHER_MAJOR && (
+            <>
+              <input
+                type="text"
+                required
+                maxLength={100}
+                value={otherMajor}
+                onChange={(e) => setOtherMajor(e.target.value)}
+                placeholder="Type your major"
+                className="border border-stone rounded-lg py-2 px-4 text-ink mt-2"
+              />
+              <p className="text-xs text-slate">
+                We&apos;ll check it and add it to the list.
+              </p>
+            </>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -362,14 +394,14 @@ export default function BecomeATutorPage() {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">
-            Courses you can tutor (comma-separated)
+            Courses you can tutor (name or code, comma-separated)
           </label>
           <textarea
             required
             maxLength={300}
             value={courses}
             onChange={(e) => setCourses(e.target.value)}
-            placeholder="CSC 210, MATH 201, CSC 330"
+            placeholder="Calculus II, MATH 202, CSC 210"
             className="border border-stone rounded-lg py-2 px-4 text-ink"
             rows={2}
           />
@@ -386,6 +418,21 @@ export default function BecomeATutorPage() {
             onChange={(e) => setPrice(e.target.value)}
             className="border border-stone rounded-lg py-2 px-4 text-ink"
           />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-slate">How do you teach?</label>
+          <select
+            value={sessionMode}
+            onChange={(e) => setSessionMode(e.target.value as SessionMode)}
+            className="border border-stone rounded-lg py-2 px-4 text-ink"
+          >
+            {sessionModes.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -434,7 +481,7 @@ export default function BecomeATutorPage() {
           </label>
           <p className="text-xs text-ink">
             Your transcript must clearly show your <strong>GPA</strong> and
-            your <strong>USEK student ID</strong>. Applications without both
+            your <strong>university student ID</strong>. Applications without both
             can't be approved.
           </p>
           <div className="flex items-center gap-3">
@@ -534,6 +581,8 @@ export default function BecomeATutorPage() {
             <dl className="rounded-lg border border-stone p-4 mb-6 text-sm">
               <dt className="text-slate">Full name</dt>
               <dd className="text-ink font-medium mb-3">{studentName}</dd>
+              <dt className="text-slate">University</dt>
+              <dd className="text-ink font-medium mb-3">{university}</dd>
               <dt className="text-slate">Phone / WhatsApp number</dt>
               <dd className="text-ink font-medium">+{normalizedPhone}</dd>
             </dl>

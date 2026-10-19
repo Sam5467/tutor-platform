@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentsOpen } from "@/lib/site-settings";
@@ -41,5 +42,9 @@ export default async function TutorsPage() {
     );
   }
 
-  return <TutorsBrowser />;
+  return (
+    <Suspense>
+      <TutorsBrowser />
+    </Suspense>
+  );
 }

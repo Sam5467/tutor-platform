@@ -1,6 +1,10 @@
+import type { SessionMode } from "@/lib/session-modes";
+
 export type TutorRow = {
   id: string;
   full_name: string;
+  university: string;
+  session_mode: SessionMode;
   faculty: string;
   major: string;
   year: string;
@@ -16,6 +20,8 @@ export type TutorRow = {
 export type Tutor = {
   id: string;
   name: string;
+  university: string;
+  sessionMode: SessionMode;
   faculty: string;
   major: string;
   year: string;
@@ -30,7 +36,7 @@ export type Tutor = {
 };
 
 export const TUTOR_COLUMNS =
-  "id, full_name, faculty, major, year, courses, price, bio, status, is_paid, profile_picture_path, created_at";
+  "id, full_name, university, session_mode, faculty, major, year, courses, price, bio, status, is_paid, profile_picture_path, created_at";
 
 export function rowToTutor(row: TutorRow): Tutor {
   const photoUrl = row.profile_picture_path
@@ -40,6 +46,8 @@ export function rowToTutor(row: TutorRow): Tutor {
   return {
     id: row.id,
     name: row.full_name,
+    university: row.university,
+    sessionMode: row.session_mode,
     faculty: row.faculty,
     major: row.major,
     year: row.year,

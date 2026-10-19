@@ -3,8 +3,12 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TUTOR_COLUMNS, rowToTutor, type TutorRow } from "@/lib/tutors";
 import { ContactButton } from "@/components/contact-button";
+import { BackButton } from "@/components/back-button";
 import { ReviewsSection } from "@/components/reviews-section";
-import { getStudentsOpen } from "@/lib/site-settings";
+import { getStudentsOpen, LOCAL_PREVIEW } from "@/lib/site-settings";
+import { demoTutors } from "@/lib/demo-tutors";
+import type { Tutor } from "@/lib/tutors";
+import { sessionModeLabel } from "@/lib/session-modes";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -12,6 +16,14 @@ type PageProps = {
 
 export default async function TutorProfilePage({ params }: PageProps) {
   const { id } = await params;
+
+  // Testing locally: the demo tutors get a profile page too.
+  if (LOCAL_PREVIEW && id.startsWith("demo-")) {
+    const demo = demoTutors().find((t) => t.id === id);
+    if (!demo) notFound();
+    return <TutorProfile tutor={demo} demo />;
+  }
+
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -58,6 +70,26 @@ export default async function TutorProfilePage({ params }: PageProps) {
     }
   }
 
+  return (
+    <TutorProfile
+      tutor={tutor}
+      isOwnProfile={isOwnProfile}
+      listingNote={listingNote}
+    />
+  );
+}
+
+function TutorProfile({
+  tutor,
+  isOwnProfile = false,
+  listingNote = "",
+  demo = false,
+}: {
+  tutor: Tutor;
+  isOwnProfile?: boolean;
+  listingNote?: string;
+  demo?: boolean;
+}) {
   const initials = tutor.name
     .split(" ")
     .map((part) => part[0])
@@ -66,6 +98,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
 
   return (
     <div className="max-w-4xl mx-auto py-16 px-4">
+      <BackButton fallback="/tutors" label="Back" />
       <div className="flex flex-col sm:flex-row gap-8">
         <div className="flex-1">
           <div className="flex items-center gap-4 mb-6">
@@ -85,6 +118,9 @@ export default async function TutorProfilePage({ params }: PageProps) {
               <p className="text-slate text-sm">
                 {tutor.major} · {tutor.year}
               </p>
+              <p className="text-slate text-sm">
+                {tutor.university} · {sessionModeLabel(tutor.sessionMode)}
+              </p>
             </div>
           </div>
 
@@ -93,7 +129,13 @@ export default async function TutorProfilePage({ params }: PageProps) {
           <p className="text-sm text-slate mb-1">Courses taught</p>
           <p className="text-ink mb-6">{tutor.courses.join(", ")}</p>
 
-          <ReviewsSection tutorId={tutor.id} hideForm={isOwnProfile} />
+          {demo ? (
+            <p className="text-sm text-slate">
+              Demo tutor: reviews aren&apos;t shown.
+            </p>
+          ) : (
+            <ReviewsSection tutorId={tutor.id} hideForm={isOwnProfile} />
+          )}
         </div>
 
         <div className="sm:w-64 flex flex-col gap-6">
@@ -118,7 +160,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
               </Link>
             </div>
           ) : (
-            <ContactButton tutorId={tutor.id} />
+            <ContactButton tutorId={tutor.id} demo={demo} />
           )}
         </div>
       </div>

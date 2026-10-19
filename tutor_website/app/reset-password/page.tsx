@@ -1,5 +1,6 @@
 "use client";
 
+import { FormSkeleton } from "@/components/skeleton";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -54,11 +55,7 @@ export default function ResetPasswordPage() {
   };
 
   if (!ready) {
-    return (
-      <div className="max-w-md mx-auto py-24 px-4 text-center">
-        <p className="text-slate">Loading...</p>
-      </div>
-    );
+    return <FormSkeleton fields={2} />;
   }
 
   if (!hasSession) {

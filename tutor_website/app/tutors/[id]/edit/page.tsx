@@ -21,7 +21,7 @@ export default async function EditListingPage({ params }: PageProps) {
   // Only the owner of this listing can open the edit page.
   const { data: tutor } = await supabase
     .from("tutors")
-    .select("id, year, courses, price, bio, profile_picture_path")
+    .select("id, year, courses, price, bio, session_mode, profile_picture_path")
     .eq("id", id)
     .eq("student_id", user.id)
     .maybeSingle();
@@ -49,6 +49,7 @@ export default async function EditListingPage({ params }: PageProps) {
         price: Number(tutor.price),
         bio: tutor.bio ?? "",
         phone: priv?.phone ?? "",
+        sessionMode: tutor.session_mode,
         photoUrl,
       }}
     />

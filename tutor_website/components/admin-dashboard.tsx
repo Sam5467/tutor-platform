@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminSkeleton } from "@/components/skeleton";
 import { useState, useMemo, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { dbErrorMessage } from "@/lib/errors";
@@ -13,6 +14,7 @@ type Status = "pending" | "approved" | "rejected";
 type TutorRow = {
   id: string;
   full_name: string;
+  university: string;
   faculty: string;
   major: string;
   year: string;
@@ -58,7 +60,7 @@ export function AdminDashboard() {
       const { data, error: fetchError } = await supabase
         .from("tutors")
         .select(
-          "id, full_name, faculty, major, year, courses, price, bio, status, paid_until, created_at, profile_picture_path, tutor_private(gpa, phone, transcript_path)"
+          "id, full_name, university, faculty, major, year, courses, price, bio, status, paid_until, created_at, profile_picture_path, tutor_private(gpa, phone, transcript_path)"
         )
         .order("created_at", { ascending: false });
 
@@ -74,6 +76,7 @@ export function AdminDashboard() {
             return {
               id: t.id,
               full_name: t.full_name,
+              university: t.university,
               faculty: t.faculty,
               major: t.major,
               year: t.year,
@@ -286,11 +289,7 @@ export function AdminDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto py-16 px-4">
-        <p className="text-slate">Loading tutors...</p>
-      </div>
-    );
+    return <AdminSkeleton />;
   }
 
   return (
@@ -379,7 +378,9 @@ export function AdminDashboard() {
                           {openId === tutor.id ? "Hide details" : "Details"}
                         </button>
                       </div>
-                      <span className="text-slate">{tutor.major}</span>
+                      <span className="text-slate">
+                        {tutor.university} · {tutor.major}
+                      </span>
                       <div className="flex flex-col items-start">
                         <span className="text-slate">
                           {tutor.gpa !== null
@@ -474,7 +475,11 @@ export function AdminDashboard() {
                     {openId === tutor.id && (
                       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 pb-5 text-sm">
                         <div>
-                          <dt className="text-xs text-slate">Faculty</dt>
+                          <dt className="text-xs text-slate">University</dt>
+                          <dd className="text-ink">{tutor.university}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-slate">Field</dt>
                           <dd className="text-ink">{tutor.faculty}</dd>
                         </div>
                         <div>

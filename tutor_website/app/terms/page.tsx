@@ -26,7 +26,7 @@ export default function TermsPage() {
       </h2>
       <p className="text-ink mb-4">
         Passalong is an independent, student-run platform that helps senior
-        USEK students who offer tutoring connect with newer students. We are
+        university students who offer tutoring connect with newer students. We are
         not a party to any arrangement made between a tutor and a student.
         Sessions, scheduling and any payment for sessions happen directly
         between them. We do not guarantee the quality of any tutoring or any
@@ -63,7 +63,7 @@ export default function TermsPage() {
       <ul className="list-disc pl-6 text-ink mb-4 flex flex-col gap-2">
         <li>
           To apply you must submit your GPA and a transcript that clearly shows
-          both your GPA and your USEK student ID. You must only list courses
+          both your GPA and your university student ID. You must only list courses
           you have really passed. Information you give must be true.
         </li>
         <li>

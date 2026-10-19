@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewsSkeleton } from "@/components/skeleton";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { dbErrorMessage } from "@/lib/errors";
@@ -173,7 +174,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
       )}
 
       {reviews === null ? (
-        <p className="text-slate text-sm">Loading reviews...</p>
+        <ReviewsSkeleton />
       ) : reviews.length === 0 ? (
         <p className="text-slate text-sm mb-6">No reviews yet.</p>
       ) : (

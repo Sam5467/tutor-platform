@@ -12,8 +12,8 @@ export default function PrivacyPage() {
 
       <p className="text-ink mb-4">
         Passalong is an independent, student-run platform that connects
-        senior USEK students who offer tutoring with newer students who need
-        help. It is not an official service of USEK. This page explains what
+        senior university students who offer tutoring with newer students who need
+        help. It is not an official service of any university. This page explains what
         personal information we collect, why, who can see it, and what choices
         you have.
       </p>
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
         <li>Your phone / WhatsApp number.</li>
         <li>Your GPA.</li>
         <li>
-          Your transcript file, which shows your GPA and your USEK student ID.
+          Your transcript file, which shows your GPA and your university student ID.
         </li>
         <li>Optionally, a profile picture.</li>
         <li>

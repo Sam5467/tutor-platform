@@ -1,33 +1,19 @@
-import { faculties } from "@/lib/faculties";
+import { fields } from "@/lib/fields";
 import { Footer } from "@/components/footer";
 import { BookOpen } from "lucide-react";
 
 type MajorPickerProps = {
-  faculty: string;
-  subFaculty: string;
-  step: number;
-  totalSteps: number;
+  field: string;
   onSelect: (major: string) => void;
   onBack: () => void;
 };
 
-export function MajorPicker({
-  faculty,
-  subFaculty,
-  step,
-  totalSteps,
-  onSelect,
-  onBack,
-}: MajorPickerProps) {
-  const facultyData = faculties.find((f) => f.name === faculty);
-  const subFacultyData = facultyData?.subFaculties.find(
-    (s) => s.name === subFaculty
-  );
-  const majors = subFacultyData?.majors ?? [];
+export function MajorPicker({ field, onSelect, onBack }: MajorPickerProps) {
+  const majors = fields.find((f) => f.name === field)?.majors ?? [];
 
   return (
     <div>
-      <div className="relative max-w-5xl mx-auto py-16 px-4">
+      <div className="relative max-w-5xl mx-auto py-10 sm:py-16 px-4">
         <BookOpen
           className="hidden lg:block absolute left-8 top-1/2 -translate-y-1/2 text-stone"
           size={140}
@@ -43,9 +29,7 @@ export function MajorPicker({
           <button onClick={onBack} className="text-slate text-sm mb-6">
             ← Back
           </button>
-          <p className="text-slate text-sm text-center mb-2">
-            Step {step} of {totalSteps}
-          </p>
+          <p className="text-slate text-sm text-center mb-2">Step 2 of 2</p>
           <h1 className="font-display text-2xl text-ink text-center mb-8">
             Which major?
           </h1>
