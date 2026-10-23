@@ -229,7 +229,7 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
 
         <div className="flex flex-col gap-1">
           <p className="text-sm text-slate">
-            Profile picture — JPG, PNG or WebP, max 2 MB
+            Profile picture (JPG, PNG or WebP, max 2 MB)
           </p>
           <div className="flex items-center gap-3">
             <label

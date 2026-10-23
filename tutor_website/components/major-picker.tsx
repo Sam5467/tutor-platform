@@ -45,7 +45,7 @@ export function MajorPicker({ field, onSelect, onBack }: MajorPickerProps) {
             ))}
           </div>
           <p className="text-slate text-sm text-center mt-8">
-            Don&apos;t worry — you can always go back and change this.
+            Don&apos;t worry, you can always go back and change this.
           </p>
         </div>
       </div>

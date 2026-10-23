@@ -182,7 +182,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
           {reviews.map((review) => (
             <div key={review.id} className="border-t border-stone pt-4">
               <p className="text-sm font-medium text-ink">
-                {review.student_name} — {review.rating}/5
+                {review.student_name} · {review.rating}/5
               </p>
               {review.comment && (
                 <p className="text-sm text-slate">{review.comment}</p>
@@ -245,7 +245,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
 
       {!hideForm && loggedIn && alreadyReviewed && (
         <p className="text-sm text-slate border-t border-stone pt-6">
-          Thanks — you've already left a review for this tutor.
+          Thanks, you've already left a review for this tutor.
         </p>
       )}
     </div>

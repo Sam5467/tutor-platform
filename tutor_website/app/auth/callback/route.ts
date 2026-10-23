@@ -18,6 +18,14 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(new URL(safeNext, origin));
     }
+
+    // A code means Supabase already checked the link. The swap fails when the
+    // link is opened in another browser or app (e.g. the Gmail app) than the
+    // one used to sign up. For a sign-up the email is confirmed anyway, so
+    // just ask them to log in.
+    if (safeNext !== "/reset-password") {
+      return NextResponse.redirect(new URL("/login?confirmed=1", origin));
+    }
   }
 
   return NextResponse.redirect(new URL("/login?error=link", origin));

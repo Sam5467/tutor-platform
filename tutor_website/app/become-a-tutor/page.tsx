@@ -2,6 +2,7 @@
 
 import { FormSkeleton } from "@/components/skeleton";
 import { TEST_MODE } from "@/lib/test-mode";
+import { listingFeeMessage, type SiteState } from "@/lib/listing-fee";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { fields } from "@/lib/fields";
@@ -44,10 +45,24 @@ export default function BecomeATutorPage() {
   const [studentName, setStudentName] = useState("");
   // Test mode while logged out: the form works but nothing is saved.
   const [previewOnly, setPreviewOnly] = useState(false);
+  const [siteState, setSiteState] = useState<SiteState>({
+    studentsOpen: false,
+    studentsOpenedAt: null,
+  });
 
   useEffect(() => {
     async function checkExisting() {
       const supabase = createClient();
+
+      // Decides what we tell the tutor about the free period and the fee.
+      const { data: settings } = await supabase
+        .from("site_settings")
+        .select("students_open, students_opened_at")
+        .maybeSingle();
+      setSiteState({
+        studentsOpen: !!settings?.students_open,
+        studentsOpenedAt: settings?.students_opened_at ?? null,
+      });
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -278,6 +293,7 @@ export default function BecomeATutorPage() {
           Your profile has been submitted for review. We'll check your GPA
           and transcript and reach out once your listing is approved.
         </p>
+        <FeeNotice state={siteState} className="mt-8 text-left" />
       </div>
     );
   }
@@ -478,7 +494,7 @@ export default function BecomeATutorPage() {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">
-            Transcript — PDF, JPG, PNG or WebP, max 5 MB
+            Transcript (PDF, JPG, PNG or WebP, max 5 MB)
           </label>
           <p className="text-xs text-ink">
             Your transcript must clearly show your <strong>GPA</strong> and
@@ -511,7 +527,7 @@ export default function BecomeATutorPage() {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">
-            Profile picture (optional) — JPG, PNG or WebP, max 2 MB
+            Profile picture (optional, JPG, PNG or WebP, max 2 MB)
           </label>
           <div className="flex items-center gap-3">
             <label
@@ -571,7 +587,7 @@ export default function BecomeATutorPage() {
           aria-modal="true"
           aria-labelledby="confirm-title"
         >
-          <div className="w-full max-w-sm rounded-xl bg-paper p-6 shadow-lg">
+          <div className="w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-xl bg-paper p-6 shadow-lg">
             <h2 id="confirm-title" className="font-display text-xl text-ink mb-2">
               Are you sure about this information?
             </h2>
@@ -579,7 +595,7 @@ export default function BecomeATutorPage() {
               Students will contact you on this number, so please make sure it
               is correct and has WhatsApp.
             </p>
-            <dl className="rounded-lg border border-stone p-4 mb-6 text-sm">
+            <dl className="rounded-lg border border-stone p-4 mb-4 text-sm">
               <dt className="text-slate">Full name</dt>
               <dd className="text-ink font-medium mb-3">{studentName}</dd>
               <dt className="text-slate">University</dt>
@@ -587,6 +603,7 @@ export default function BecomeATutorPage() {
               <dt className="text-slate">Phone / WhatsApp number</dt>
               <dd className="text-ink font-medium">+{normalizedPhone}</dd>
             </dl>
+            <FeeNotice state={siteState} className="mb-6" />
             <div className="flex gap-3">
               <button
                 type="button"
@@ -606,6 +623,27 @@ export default function BecomeATutorPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// The free period and the $10 monthly fee, worded for where the site is now.
+function FeeNotice({
+  state,
+  className = "",
+}: {
+  state: SiteState;
+  className?: string;
+}) {
+  const { title, lines } = listingFeeMessage(state);
+  return (
+    <div className={`rounded-lg bg-brass/10 border border-brass/40 p-4 ${className}`}>
+      <p className="font-medium text-ink text-sm mb-2">{title}</p>
+      {lines.map((line) => (
+        <p key={line} className="text-sm text-slate mb-1 last:mb-0">
+          {line}
+        </p>
+      ))}
     </div>
   );
 }

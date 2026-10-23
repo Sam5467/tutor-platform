@@ -5,7 +5,7 @@ export const universities = [
   { short: "LAU", name: "Lebanese American University" },
   { short: "USJ", name: "Université Saint-Joseph de Beyrouth" },
   { short: "USEK", name: "Holy Spirit University of Kaslik" },
-  { short: "NDU", name: "Notre Dame University – Louaizé" },
+  { short: "NDU", name: "Notre Dame University, Louaizé" },
   { short: "LU", name: "Lebanese University" },
   { short: "BAU", name: "Beirut Arab University" },
   { short: "UOB", name: "University of Balamand" },

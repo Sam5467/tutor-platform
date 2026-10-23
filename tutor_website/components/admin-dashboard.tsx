@@ -210,7 +210,7 @@ export function AdminDashboard() {
     !!t.paid_until && new Date(t.paid_until) > new Date();
 
   const listingLabel = (t: TutorRow) => {
-    if (!t.paid_until) return t.status === "approved" ? "Not started" : "—";
+    if (!t.paid_until) return t.status === "approved" ? "Not started" : "None";
     return isActive(t)
       ? `Until ${formatDate(t.paid_until)}`
       : `Ended ${formatDate(t.paid_until)}`;
@@ -385,7 +385,7 @@ export function AdminDashboard() {
                         <span className="text-slate">
                           {tutor.gpa !== null
                             ? Number(tutor.gpa).toFixed(2)
-                            : "—"}
+                            : "None"}
                         </span>
                         {tutor.transcript_path ? (
                           <button
@@ -493,7 +493,7 @@ export function AdminDashboard() {
                         <div>
                           <dt className="text-xs text-slate">Phone</dt>
                           <dd className="text-ink">
-                            {tutor.phone ? `+${tutor.phone}` : "—"}
+                            {tutor.phone ? `+${tutor.phone}` : "None"}
                           </dd>
                         </div>
                         <div className="sm:col-span-2">
@@ -503,7 +503,7 @@ export function AdminDashboard() {
                         <div className="sm:col-span-2">
                           <dt className="text-xs text-slate">Bio</dt>
                           <dd className="text-ink whitespace-pre-line">
-                            {tutor.bio || "—"}
+                            {tutor.bio || "None"}
                           </dd>
                         </div>
                         <div>

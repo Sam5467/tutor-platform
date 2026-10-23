@@ -117,6 +117,12 @@ function LoginForm() {
 
         <Turnstile onToken={setCaptchaToken} resetCount={captchaReset} />
 
+        {searchParams.get("confirmed") && !error && (
+          <p className="text-sm text-ink">
+            Your email is confirmed. Log in to continue.
+          </p>
+        )}
+
         {searchParams.get("error") === "link" && !error && (
           <p className="text-sm text-slate">
             That link is invalid or has expired. Please request a new one.

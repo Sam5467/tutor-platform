@@ -7,7 +7,7 @@ const faqs = [
   {
     question: "Is it free for students?",
     answer:
-      "Yes. Browsing and contacting tutors is completely free for students — no fees, no commission.",
+      "Yes. Browsing and contacting tutors is completely free for students. No fees, no commission.",
   },
   {
     question: "How do I pay my tutor?",
@@ -22,7 +22,7 @@ const faqs = [
   {
     question: "Can I become a tutor?",
     answer:
-      "If you're a senior student who has already passed the course, yes — submit your info and transcript for review.",
+      "If you're a senior student who has already passed the course, yes. Submit your info and transcript for review.",
   },
 ];
 
