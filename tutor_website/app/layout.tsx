@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 import { Header } from "@/components/header";
+import { NoticeBanner } from "@/components/notice-banner";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -32,6 +34,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${fraunces.variable} ${inter.variable}`}>
         <Header />
+        <Suspense>
+          <NoticeBanner />
+        </Suspense>
         {children}
       </body>
     </html>

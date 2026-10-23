@@ -21,7 +21,12 @@ export async function GET(request: Request) {
       token_hash: tokenHash,
     });
     if (!error) {
-      return NextResponse.redirect(new URL(safeNext, origin));
+      const target = new URL(safeNext, origin);
+      // A confirmed sign-up gets a short "your email is confirmed" message.
+      if (type === "email" || type === "signup") {
+        target.searchParams.set("notice", "confirmed");
+      }
+      return NextResponse.redirect(target);
     }
   }
 
