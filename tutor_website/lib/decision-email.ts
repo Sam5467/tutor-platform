@@ -75,6 +75,7 @@ export function buildDecisionEmail(input: EmailInput): {
     subject = "Your Passalong listing has been removed";
     lines = [
       "Your tutor listing has been removed from Passalong, so students can no longer see it.",
+      ...(input.reason ? [`Reason: ${input.reason}`] : []),
       `If you think this is a mistake, write to us at ${CONTACT_EMAIL}.`,
     ];
   } else {

@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     studentsOpen: !!settings?.students_open,
     paidUntil: tutor.paid_until,
     reason:
-      decision === "rejected" && typeof body?.reason === "string"
+      decision !== "approved" && typeof body?.reason === "string"
         ? body.reason.trim().slice(0, 500)
         : undefined,
   });

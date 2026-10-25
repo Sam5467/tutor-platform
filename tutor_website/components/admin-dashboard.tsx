@@ -126,18 +126,18 @@ export function AdminDashboard() {
     filter === "all" ? tutors : tutors.filter((t) => t.status === filter);
 
   const setStatus = async (tutor: TutorRow, status: Status) => {
-    // Rejecting asks for a reason, which is written in the tutor's email.
+    // Rejecting or unlisting asks for a reason, which is written in the
+    // tutor's email.
     let reason = "";
-    if (status === "rejected" && tutor.status === "approved") {
-      if (!window.confirm(`Unlist ${tutor.full_name}?`)) return;
-    } else if (status === "rejected") {
+    if (status === "rejected") {
+      const action = tutor.status === "approved" ? "Unlist" : "Reject";
       const typed = window.prompt(
-        `Reject ${tutor.full_name}?\n\nWhy? This reason is written in the email they receive.`
+        `${action} ${tutor.full_name}?\n\nWhy? This reason is written in the email they receive.`
       );
       if (typed === null) return;
       reason = typed.trim();
       if (!reason) {
-        setError("Please type a reason to reject a tutor.");
+        setError(`Please type a reason to ${action.toLowerCase()} a tutor.`);
         return;
       }
     }
