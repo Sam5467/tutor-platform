@@ -46,6 +46,12 @@ export function AdminDashboard() {
   const [studentsOpen, setStudentsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [notice, setNotice] = useState("");
+  // Result of the email sent to a tutor after Approve / Reject / Unlist.
+  const [emailNotice, setEmailNotice] = useState<{
+    text: string;
+    phone: string | null;
+    failed: boolean;
+  } | null>(null);
 
   useEffect(() => {
     async function loadTutors() {
@@ -120,17 +126,31 @@ export function AdminDashboard() {
     filter === "all" ? tutors : tutors.filter((t) => t.status === filter);
 
   const setStatus = async (tutor: TutorRow, status: Status) => {
-    if (status === "rejected") {
-      const action = tutor.status === "approved" ? "Unlist" : "Reject";
-      if (!window.confirm(`${action} ${tutor.full_name}?`)) return;
+    // Rejecting asks for a reason, which is written in the tutor's email.
+    let reason = "";
+    if (status === "rejected" && tutor.status === "approved") {
+      if (!window.confirm(`Unlist ${tutor.full_name}?`)) return;
+    } else if (status === "rejected") {
+      const typed = window.prompt(
+        `Reject ${tutor.full_name}?\n\nWhy? This reason is written in the email they receive.`
+      );
+      if (typed === null) return;
+      reason = typed.trim();
+      if (!reason) {
+        setError("Please type a reason to reject a tutor.");
+        return;
+      }
     }
 
     setError("");
+    setEmailNotice(null);
     const supabase = createClient();
-    const { error: updateError } = await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("tutors")
       .update({ status })
-      .eq("id", tutor.id);
+      .eq("id", tutor.id)
+      .select("paid_until")
+      .single();
 
     if (updateError) {
       setError(dbErrorMessage(updateError));
@@ -138,7 +158,36 @@ export function AdminDashboard() {
     }
 
     setTutors((prev) =>
-      prev.map((t) => (t.id === tutor.id ? { ...t, status } : t))
+      prev.map((t) =>
+        t.id === tutor.id
+          ? { ...t, status, paid_until: updated?.paid_until ?? t.paid_until }
+          : t
+      )
+    );
+
+    // Tell the tutor by email. If that fails, offer WhatsApp instead.
+    const result = await fetch("/api/tutor-decision-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tutorId: tutor.id,
+        wasApproved: tutor.status === "approved",
+        reason,
+      }),
+    })
+      .then((res) => res.json())
+      .catch(() => ({ sent: false, reason: "The email couldn't be sent." }));
+
+    setEmailNotice(
+      result.sent
+        ? { text: `Email sent to ${tutor.full_name}.`, phone: null, failed: false }
+        : {
+            text: `Email not sent to ${tutor.full_name}${
+              result.reason ? ` (${result.reason})` : ""
+            }. Message them on WhatsApp instead.`,
+            phone: tutor.phone,
+            failed: true,
+          }
     );
   };
 
@@ -301,6 +350,35 @@ export function AdminDashboard() {
 
       {error && <p className="text-sm text-red-600 mb-6">{error}</p>}
       {notice && <p className="text-sm text-green-700 mb-6">{notice}</p>}
+      {emailNotice && (
+        <div
+          role="status"
+          className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md rounded-lg border bg-paper shadow-lg px-4 py-3 text-sm flex flex-wrap items-center gap-3 ${
+            emailNotice.failed
+              ? "border-red-600 text-red-600"
+              : "border-green-700 text-green-700"
+          }`}
+        >
+          <p>{emailNotice.text}</p>
+          {emailNotice.phone && (
+            <a
+              href={`https://wa.me/${emailNotice.phone}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full bg-brass text-paper px-3 py-1 text-xs"
+            >
+              Open WhatsApp
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={() => setEmailNotice(null)}
+            className="text-xs text-slate underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div className="border border-stone rounded-lg p-5 mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
