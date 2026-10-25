@@ -8,12 +8,14 @@ export default function PrivacyPage() {
   return (
     <div className="max-w-2xl mx-auto py-16 px-4">
       <h1 className="font-display text-2xl text-ink mb-2">Privacy Policy</h1>
-      <p className="text-sm text-slate mb-8">Last updated: 12 October 2026</p>
+      <p className="text-sm text-slate mb-8">Last updated: 25 October 2026</p>
 
       <p className="text-ink mb-4">
         Passalong is an independent, student-run platform that connects
         senior university students who offer tutoring with newer students who need
-        help. It is not an official service of any university. This page explains what
+        help. It is not affiliated with any university and is not an official
+        service of any university, and we don&apos;t share your information
+        with any university. This page explains what
         personal information we collect, why, who can see it, and what choices
         you have.
       </p>
@@ -39,8 +41,9 @@ export default function PrivacyPage() {
       </p>
       <ul className="list-disc pl-6 text-ink mb-4 flex flex-col gap-1">
         <li>
-          Your faculty, major, year, the courses you can tutor, your price per
-          session and your bio.
+          Your university, field, major, year, the courses you can tutor, how
+          you teach (online or in person), your price per session and your
+          bio.
         </li>
         <li>Your phone / WhatsApp number.</li>
         <li>Your GPA.</li>
@@ -69,8 +72,9 @@ export default function PrivacyPage() {
           They are never shown to other students.
         </li>
         <li>
-          <strong>Your listing</strong> (name, photo, faculty, major, year,
-          courses, price, bio, reviews and average rating) can be seen by
+          <strong>Your listing</strong> (name, photo, university, field, major,
+          year, courses, how you teach, price, bio, reviews and average
+          rating) can be seen by
           users of the site while your listing is active.
         </li>
         <li>
@@ -162,7 +166,7 @@ export default function PrivacyPage() {
         <li>You can delete any review you wrote.</li>
         <li>
           You can ask us to show you the information we hold about you, to
-          correct it (including your name, faculty, major or GPA), or to delete
+          correct it (including your name, university, field, major or GPA), or to delete
           your account and data, by contacting us (see below).
         </li>
       </ul>

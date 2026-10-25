@@ -10,7 +10,7 @@ export default function TermsPage() {
       <h1 className="font-display text-2xl text-ink mb-2">
         Terms of Service
       </h1>
-      <p className="text-sm text-slate mb-8">Last updated: 12 October 2026</p>
+      <p className="text-sm text-slate mb-8">Last updated: 25 October 2026</p>
 
       <p className="text-ink mb-4">
         By creating an account or using Passalong, you agree to these terms
@@ -31,6 +31,13 @@ export default function TermsPage() {
         Sessions, scheduling and any payment for sessions happen directly
         between them. We do not guarantee the quality of any tutoring or any
         academic result.
+      </p>
+      <p className="text-ink mb-4">
+        <strong>Passalong is not affiliated with any university.</strong> We
+        are not part of, endorsed by, sponsored by or connected in any way to
+        any university. University names appear on the site only to show where a tutor
+        studies, and they belong to their owners. Tutors are independent
+        students and do not speak or act for their university.
       </p>
 
       <h2 className="font-display text-lg text-ink mt-8 mb-3">
@@ -72,9 +79,9 @@ export default function TermsPage() {
           false or the tutor behaves badly.
         </li>
         <li>
-          Your name, faculty and major can be changed only by an
-          administrator. You can edit your price, courses, bio, year, phone
-          number and photo yourself.
+          Your name, university, field and major can be changed only by an
+          administrator. You can edit your price, courses, bio, year, how you
+          teach (online or in person), phone number and photo yourself.
         </li>
         <li>
           Your phone number is given to students who press “Contact on

@@ -11,6 +11,9 @@ export default function AboutPage() {
         Every tutor listing is manually reviewed, including GPA and
         transcript verification, before it goes live.
       </p>
+      <p className="text-slate text-sm mt-4">
+        Passalong is independent and is not affiliated with any university.
+      </p>
     </div>
   );
 }
