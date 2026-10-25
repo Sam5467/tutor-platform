@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
 import { authErrorMessage } from "@/lib/errors";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -78,8 +77,9 @@ function LoginForm() {
     // Only follow "next" if it's a path on this site ("/..." but not "//...").
     const next = searchParams.get("next");
     const safeNext = next && /^\/(?!\/)/.test(next) ? next : "/";
-    router.push(safeNext);
-    router.refresh();
+    // A full page load (not router.push + refresh, where the refresh can
+    // cancel the move) so the new page and header see the fresh login.
+    window.location.assign(safeNext);
   };
 
   return (
