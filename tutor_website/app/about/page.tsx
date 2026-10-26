@@ -1,3 +1,10 @@
+export const metadata = {
+  title: "About",
+  description:
+    "Passalong connects senior university students in Lebanon who already passed a course with students who need help with it. Every tutor is checked by hand.",
+  alternates: { canonical: "/about" },
+};
+
 export default function AboutPage() {
   return (
     <div className="max-w-2xl mx-auto py-16 px-4">

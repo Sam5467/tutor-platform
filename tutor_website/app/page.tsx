@@ -6,6 +6,10 @@ import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentsOpen } from "@/lib/site-settings";
 
+export const metadata = {
+  alternates: { canonical: "/" },
+};
+
 export default async function Home() {
   const studentsOpen = await getStudentsOpen();
   const supabase = await createClient();

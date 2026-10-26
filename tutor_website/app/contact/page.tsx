@@ -1,3 +1,9 @@
+export const metadata = {
+  title: "Contact",
+  description: "Questions about Passalong, tutoring or your listing? Get in touch with us.",
+  alternates: { canonical: "/contact" },
+};
+
 export default function ContactPage() {
   return (
     <div className="max-w-2xl mx-auto py-16 px-4">
