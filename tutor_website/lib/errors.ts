@@ -67,6 +67,11 @@ export function authErrorMessage(
   if (error.status === 429) {
     return AUTH_MESSAGES.over_request_rate_limit;
   }
+  // The email service refused to send (usually the daily email limit). The
+  // account exists, so they can use "Resend" later or log in once confirmed.
+  if ((error.message ?? "").toLowerCase().includes("error sending")) {
+    return "We couldn't send the email right now because a lot of people are signing up today. Your account is saved: in a few hours, log in and press \"Resend confirmation email\", or contact us at passalonglb@gmail.com if it's urgent.";
+  }
   if (looksLikeConnectionProblem(error)) {
     return CONNECTION_ERROR;
   }
