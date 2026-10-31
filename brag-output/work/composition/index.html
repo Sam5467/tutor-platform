@@ -1,0 +1,288 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Pacifico&display=block" rel="stylesheet">
+<style>
+  :root { --ink:#12213D; --paper:#F7F6F2; --brass:#B08D57; --stone:#DCD6C9; --slate:#5B6472; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ink); }
+  body { font-family: "Segoe UI", system-ui, sans-serif; color: var(--paper); position: relative; }
+  .abs { position: absolute; }
+  .script { font-family: "Dancing Script", cursive; font-weight: 700; color: var(--brass); }
+  #glow1, #glow2 { border-radius: 50%; filter: blur(60px); }
+  #glow1 { width: 900px; height: 900px; background: radial-gradient(circle, rgba(176,141,87,.22), transparent 65%); }
+  #glow2 { width: 1100px; height: 1100px; background: radial-gradient(circle, rgba(60,90,150,.35), transparent 65%); }
+
+  /* hook + outro text */
+  .line { left: 0; width: 1080px; text-align: center; font-weight: 700; letter-spacing: -2px; line-height: 1; }
+
+  /* caption above the phone card */
+  .cap { left: 0; width: 1080px; text-align: center; }
+  .cap .k { font-size: 34px; letter-spacing: 8px; font-weight: 700; color: var(--brass); }
+  .cap .t { margin-top: 18px; font-size: 64px; font-weight: 700; letter-spacing: -1px; color: var(--paper); }
+
+  /* phone card: content is laid out at 1080x1920 and scaled down */
+  #card { left: 0; top: 0; width: 1080px; height: 1920px; border-radius: 64px; overflow: hidden;
+          background: var(--paper); box-shadow: 0 60px 120px rgba(0,0,0,.45), 0 0 0 6px rgba(255,255,255,.06);
+          transform-origin: 0 0; }
+  .layer { left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
+  .layer img { position: absolute; left: 0; top: 0; width: 1080px; display: block; }
+  #wmask { left: 0; top: 1380px; width: 1080px; height: 134px;
+           background: linear-gradient(to bottom, rgba(18,33,61,0), #12213D 45%); }
+  #press { border-radius: 999px; background: rgba(18,33,61,0); }
+  #backdrop { background: rgba(18,33,61,.6); }
+  #dialog { background-image: url(../capture/confirm.png); background-repeat: no-repeat; border-radius: 30px; }
+  #flash { background: var(--paper); }
+
+  .ring { border: 7px solid var(--brass); border-radius: 26px; box-shadow: 0 0 0 10px rgba(176,141,87,.18); }
+  .chip { background: var(--brass); color: var(--ink); font-weight: 700; font-size: 38px; padding: 12px 28px;
+          border-radius: 999px; white-space: nowrap; box-shadow: 0 10px 30px rgba(18,33,61,.25); }
+
+  /* touch indicator */
+  #finger { width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%;
+            background: rgba(255,255,255,.55); border: 5px solid rgba(255,255,255,.95);
+            box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+  #ripple { width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 6px solid rgba(255,255,255,.9); }
+
+  .spark { width: 18px; height: 18px; margin: -9px 0 0 -9px; background: var(--brass); transform: rotate(45deg); border-radius: 3px; }
+
+  #logo { width: 300px; height: 300px; border-radius: 70px; box-shadow: 0 30px 80px rgba(0,0,0,.4), 0 0 0 4px rgba(176,141,87,.35); }
+  .pill { background: var(--brass); color: var(--ink); font-weight: 700; font-size: 54px; padding: 26px 56px; border-radius: 999px; white-space: nowrap; }
+  #unis { font-size: 34px; letter-spacing: 4px; color: var(--stone); font-weight: 600; white-space: nowrap; text-align: center; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div id="glow2" class="abs"></div>
+  <div id="glow1" class="abs"></div>
+
+  <!-- Scene 1: hook -->
+  <div id="h1" class="abs line" style="top:520px;font-size:128px">You passed</div>
+  <div id="h2" class="abs line" style="top:660px;font-size:128px">the course.</div>
+  <div id="h3" class="abs line" style="top:930px;font-size:128px">Now pass it</div>
+  <div id="h4" class="abs line script" style="top:1050px;font-size:250px;letter-spacing:0;font-weight:700">along.</div>
+
+  <!-- captions -->
+  <div id="c1" class="abs cap"><div class="k">STEP 1</div><div class="t">Tap “Become a tutor”</div></div>
+  <div id="c2" class="abs cap"><div class="k">STEP 2</div><div class="t">Add your courses &amp; price</div></div>
+  <div id="c3" class="abs cap"><div class="k">STEP 3</div><div class="t">Confirm your details</div></div>
+  <div id="c4" class="abs cap"><div class="k">DONE</div><div class="t">We review it and reach out</div></div>
+
+  <!-- phone card with the real pages -->
+  <div id="card" class="abs">
+    <div id="Lhome" class="abs layer">
+      <img id="homeImg" src="../capture/home.png">
+      <div id="wmask" class="abs"></div>
+      <div id="press" class="abs" style="left:300px;top:1511px;width:480px;height:141px"></div>
+    </div>
+    <div id="Lform" class="abs layer">
+      <img id="formImg" src="../capture/form-full.png">
+      <div id="r1" class="abs ring"></div><div id="k1" class="abs chip">You pick the courses</div>
+      <div id="r2" class="abs ring"></div><div id="k2" class="abs chip">You set the price</div>
+      <div id="r3" class="abs ring"></div><div id="k3" class="abs chip">Online or in person</div>
+      <div id="spress" class="abs" style="left:40px;width:1000px;height:110px;border-radius:999px;background:rgba(255,255,255,0)"></div>
+      <div id="backdrop" class="abs layer"></div>
+      <div id="dialog" class="abs"></div>
+    </div>
+    <div id="Ldone" class="abs layer">
+      <img src="../capture/success.png">
+      <div id="r4" class="abs ring" style="left:28px;top:776px;width:1024px;height:289px"></div>
+      <div id="k4" class="abs chip">First month free</div>
+      <div id="sparks"></div>
+    </div>
+    <div id="flash" class="abs layer"></div>
+    <div id="ripple" class="abs"></div>
+    <div id="finger" class="abs"></div>
+  </div>
+
+  <!-- Scene 6: outro -->
+  <img id="logo" class="abs" src="logo.png">
+  <div id="o1" class="abs line" style="top:900px;font-size:104px">Be one of our</div>
+  <div id="o2" class="abs line script" style="top:1010px;font-size:170px;letter-spacing:0">first tutors.</div>
+  <div id="o3" class="abs pill">Apply at passalonglb.com</div>
+  <div id="unis" class="abs">AUB · LAU · USJ · USEK · NDU · LU · BAU · UOB<br><span style="color:var(--brass)">and more</span></div>
+  <div id="o4" class="abs line script" style="top:1690px;font-size:66px;letter-spacing:0;color:rgba(247,246,242,.75);font-weight:600">Built by students, for students.</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = (k) => 1 - Math.pow(1 - k, 3);
+const eIn = (k) => k * k * k;
+const eIO = (k) => (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const eBack = (k) => { const c = 1.6; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+
+// in/out envelope: rises over [a, a+d], falls over [b, b+d2]
+function env(t, a, d, b = 1e9, d2 = 0.25) {
+  return clamp(eOut(prog(t, a, a + d)) - (t > b ? eIn(prog(t, b, b + d2)) : 0));
+}
+function set(el, { x = 0, y = 0, s = 1, o = 1, r = 0, blur = 0 } = {}) {
+  el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
+  el.style.opacity = o;
+  el.style.filter = blur ? `blur(${blur}px)` : "none";
+  el.style.visibility = o <= 0.001 ? "hidden" : "visible";
+}
+
+const S = 0.78, CARD_X = (1080 - 1080 * S) / 2, CARD_Y = 360;
+const PX = 2.5; // capture css px -> image px
+const M = {
+  btn: { cx: 540, cy: 1581 },
+  courses: { y: 624 * PX, h: 66 * PX }, price: { y: 734 * PX, h: 42 * PX }, teach: { y: 820 * PX, h: 41 * PX },
+  submit: { y: 1539 * PX, h: 44 * PX }, maxScroll: 931 * PX,
+  yes: { cx: (223 + 161 / 2) * PX, cy: (508 + 38 / 2) * PX },
+  box: { x: 24 * PX, y: 198 * PX, w: 384 * PX, h: 372 * PX },
+};
+
+// sparkles: fixed pseudo-random directions
+const SP = [];
+for (let i = 0; i < 18; i++) {
+  const d = document.createElement("div"); d.className = "abs spark"; $("sparks").appendChild(d);
+  const a = (i / 18) * Math.PI * 2 + (i % 3) * 0.2;
+  SP.push({ d, a, r: 260 + ((i * 97) % 180), s: 0.7 + ((i * 53) % 10) / 12 });
+}
+
+function caption(el, t, a, b) {
+  // in over 0.3s from below, out over 0.2s upward (out finishes before the next one is in)
+  const kin = eOut(prog(t, a, a + 0.35)), kout = eIn(prog(t, b, b + 0.2));
+  el.style.top = "150px";
+  set(el, { y: lerp(40, 0, kin) - 40 * kout, o: kin * (1 - kout) });
+}
+
+function render(t) {
+  // background drift
+  set($("glow1"), { x: lerp(-200, 380, (Math.sin(t * 0.35) + 1) / 2), y: lerp(200, 1100, (Math.cos(t * 0.27) + 1) / 2) });
+  set($("glow2"), { x: lerp(300, -400, (Math.sin(t * 0.22 + 1) + 1) / 2), y: lerp(-300, 900, (Math.sin(t * 0.3) + 1) / 2) });
+
+  // ---------- Scene 1: hook (0–3) ----------
+  const hookOut = eIn(prog(t, 2.7, 3.0));
+  [["h1", 0.0], ["h2", 0.12], ["h3", 1.5], ["h4", 1.62]].forEach(([id, a]) => {
+    const k = eOut(prog(t, a, a + 0.45));
+    set($(id), { y: lerp(70, 0, k) - 160 * hookOut, o: k * (1 - hookOut), blur: (1 - k) * 12 });
+  });
+
+  // ---------- phone card position ----------
+  const cardIn = eOut(prog(t, 2.8, 3.35));
+  const cardOut = eIn(prog(t, 15.75, 16.15));
+  const cy = CARD_Y + lerp(1700, 0, cardIn) + 1800 * cardOut;
+  const cardRot = lerp(6, 0, cardIn) - 4 * cardOut;
+  const card = $("card");
+  card.style.transform = `translate(${CARD_X}px, ${cy}px) rotate(${cardRot}deg) scale(${S})`;
+  card.style.visibility = t > 2.75 && t < 16.2 ? "visible" : "hidden";
+
+  // captions (each out before the next comes in)
+  caption($("c1"), t, 3.25, 5.75);
+  caption($("c2"), t, 6.05, 10.3);
+  caption($("c3"), t, 10.55, 12.75);
+  caption($("c4"), t, 13.05, 15.7);
+
+  // ---------- Scene 2: home + tap (3–6) ----------
+  const zoomOut = eIn(prog(t, 5.45, 5.9));
+  const homeZoom = lerp(1.0, 1.04, prog(t, 3.0, 5.4));
+  const L1 = $("Lhome");
+  L1.style.transformOrigin = `${M.btn.cx}px ${M.btn.cy}px`;
+  set(L1, { s: homeZoom * lerp(1, 1.9, zoomOut), o: 1 - prog(t, 5.6, 5.9), blur: zoomOut * 10 });
+  const pressK = env(t, 4.95, 0.08, 5.1, 0.25);
+  $("press").style.background = `rgba(18,33,61,${0.28 * pressK})`;
+  $("press").style.transform = `scale(${1 - 0.04 * pressK})`;
+
+  // ---------- Scene 3: form scroll (6–10.5) ----------
+  const L2 = $("Lform");
+  const formIn = eOut(prog(t, 5.75, 6.1));
+  set(L2, { s: lerp(0.94, 1, formIn), o: formIn * (1 - prog(t, 12.6, 12.8)) });
+  L2.style.transformOrigin = "540px 960px";
+  let scroll = 0;
+  scroll = lerp(0, 1000, eIO(prog(t, 6.55, 7.15)));
+  scroll = lerp(scroll, M.maxScroll, eIO(prog(t, 8.6, 9.4)));
+  $("formImg").style.transform = `translateY(${-scroll}px)`;
+  [["r1", "k1", M.courses, 7.0, "right"], ["r2", "k2", M.price, 7.5, "right"], ["r3", "k3", M.teach, 8.0, "right"]].forEach(([r, k, f, a]) => {
+    const kk = eOut(prog(t, a, a + 0.3)), out = prog(t, 8.55, 8.75);
+    const y = f.y - scroll;
+    const ring = $(r);
+    ring.style.left = "28px"; ring.style.top = (y - 12) + "px"; ring.style.width = "1024px"; ring.style.height = (f.h + 24) + "px";
+    set(ring, { s: lerp(1.05, 1, kk), o: kk * (1 - out) });
+    const chip = $(k);
+    chip.style.right = "56px"; chip.style.left = "auto"; chip.style.top = (y - 52) + "px";
+    set(chip, { y: lerp(20, 0, kk), s: lerp(0.8, 1, eBack(prog(t, a, a + 0.35))), o: kk * (1 - out) });
+  });
+  const sp = $("spress");
+  sp.style.top = (M.submit.y - scroll) + "px";
+  sp.style.background = `rgba(255,255,255,${0.18 * env(t, 10.0, 0.08, 10.15, 0.25)})`;
+
+  // ---------- Scene 4: confirm (10.5–13) ----------
+  const dIn = prog(t, 10.5, 10.8), dOut = eIn(prog(t, 12.45, 12.7));
+  set($("backdrop"), { o: eOut(prog(t, 10.45, 10.7)) });
+  const dlg = $("dialog");
+  dlg.style.left = M.box.x + "px"; dlg.style.top = M.box.y + "px";
+  dlg.style.width = M.box.w + "px"; dlg.style.height = M.box.h + "px";
+  dlg.style.backgroundPosition = `${-M.box.x}px ${-M.box.y}px`;
+  dlg.style.backgroundSize = "1080px 1920px";
+  dlg.style.transformOrigin = "50% 50%";
+  set(dlg, { s: lerp(0.9, 1, eBack(dIn)) * lerp(1, 0.94, dOut), y: lerp(60, 0, eOut(dIn)), o: eOut(dIn) * (1 - dOut) });
+
+  // dip through paper into the success page
+  set($("flash"), { o: env(t, 12.6, 0.2, 12.85, 0.25) });
+
+  // ---------- Scene 5: success (13–16) ----------
+  set($("Ldone"), { o: prog(t, 12.8, 12.95) });
+  const ringK = eOut(prog(t, 14.0, 14.3));
+  set($("r4"), { s: lerp(1.04, 1, ringK), o: ringK });
+  const k4 = $("k4"); k4.style.right = "60px"; k4.style.top = "730px";
+  set(k4, { s: lerp(0.8, 1, eBack(prog(t, 14.0, 14.35))), y: lerp(20, 0, ringK), o: ringK });
+  SP.forEach(({ d, a, r, s }) => {
+    const k = prog(t, 13.0, 13.9);
+    const kk = eOut(k);
+    d.style.left = (540 + Math.cos(a) * r * kk) + "px";
+    d.style.top = (452 + Math.sin(a) * r * 0.55 * kk) + "px";
+    d.style.transform = `rotate(${45 + k * 180}deg) scale(${s * (1 - k * 0.6)})`;
+    d.style.opacity = k > 0 && k < 1 ? 1 - eIn(k) : 0;
+  });
+
+  // ---------- touch indicator (in card coordinates) ----------
+  const taps = [
+    { a: 4.1, at: 4.8, tap: 5.0, x0: 900, y0: 1950, x: M.btn.cx + 40, y: M.btn.cy + 10, gone: 5.4 },
+    { a: 9.35, at: 9.85, tap: 10.0, x0: 920, y0: 1950, x: 640, y: M.submit.y - M.maxScroll + M.submit.h / 2 + 8, gone: 10.4 },
+    { a: 11.35, at: 11.85, tap: 12.0, x0: 950, y0: 1950, x: M.yes.cx + 20, y: M.yes.cy + 8, gone: 12.4 },
+  ];
+  let fx = 0, fy = 0, fo = 0, fs = 1, ro = 0, rs = 1;
+  for (const p of taps) {
+    if (t >= p.a && t <= p.gone + 0.2) {
+      const k = eIO(prog(t, p.a, p.at));
+      fx = lerp(p.x0, p.x, k); fy = lerp(p.y0, p.y, k);
+      fo = prog(t, p.a, p.a + 0.15) * (1 - prog(t, p.gone, p.gone + 0.2));
+      fs = 1 - 0.18 * env(t, p.tap - 0.05, 0.05, p.tap + 0.05, 0.15);
+      const rk = prog(t, p.tap, p.tap + 0.45);
+      ro = rk > 0 && rk < 1 ? 1 - rk : 0; rs = lerp(0.6, 2.4, eOut(rk));
+      if (ro) { $("ripple").style.left = p.x + "px"; $("ripple").style.top = p.y + "px"; }
+    }
+  }
+  const f = $("finger"); f.style.left = fx + "px"; f.style.top = fy + "px"; set(f, { s: fs, o: fo });
+  set($("ripple"), { s: rs, o: ro });
+
+  // ---------- Scene 6: outro (16–20) ----------
+  const lk = eBack(prog(t, 16.0, 16.45));
+  const logo = $("logo"); logo.style.left = "390px"; logo.style.top = "520px";
+  set(logo, { s: lerp(0.4, 1, lk), o: prog(t, 16.0, 16.15), r: lerp(-12, 0, eOut(prog(t, 16.0, 16.5))) });
+  [["o1", 16.25], ["o2", 16.4]].forEach(([id, a]) => {
+    const k = eOut(prog(t, a, a + 0.45));
+    set($(id), { y: lerp(60, 0, k), o: k, blur: (1 - k) * 10 });
+  });
+  const pill = $("o3"); pill.style.top = "1290px";
+  pill.style.left = (540 - pill.offsetWidth / 2) + "px";
+  set(pill, { s: lerp(0.85, 1, eBack(prog(t, 17.0, 17.4))), o: prog(t, 17.0, 17.15) });
+  const unis = $("unis"); unis.style.top = "1500px"; unis.style.left = (540 - unis.offsetWidth / 2) + "px";
+  set(unis, { y: lerp(30, 0, eOut(prog(t, 17.5, 17.9))), o: eOut(prog(t, 17.5, 17.9)) });
+  const o4k = eOut(prog(t, 18.0, 18.45));
+  set($("o4"), { y: lerp(30, 0, o4k), o: o4k });
+}
+
+window.render = render;
+window.ready = Promise.all([
+  document.fonts.ready,
+  ...[...document.images].map((i) => i.complete ? 1 : new Promise((r) => { i.onload = i.onerror = r; })),
+  document.fonts.load('700 100px "Dancing Script"'),
+]).then(() => { render(0); return true; });
+</script>
+</body>
+</html>

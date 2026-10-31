@@ -25,7 +25,7 @@ export default function BecomeATutorPage() {
   const [major, setMajor] = useState("");
   const [otherMajor, setOtherMajor] = useState("");
   const [sessionMode, setSessionMode] = useState<SessionMode>("both");
-  const [year, setYear] = useState("Senior");
+  const [year, setYear] = useState("");
   const [courses, setCourses] = useState("");
   const [price, setPrice] = useState("");
   const [bio, setBio] = useState("");

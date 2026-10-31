@@ -1,0 +1,62 @@
+{
+  "homeButton": {
+    "x": 120.328125,
+    "y": 604.59375,
+    "w": 191.34375,
+    "h": 56
+  },
+  "homeText": "Passalong\nTutor your fellow\nstudents\n\nApply now and be one of our first tutors.\n\nBecome a tutor\nThree steps between you and a course you understand.\nSearch\n\nFind senior students who've already taken and understood your exact course.\n\nContact\n\nReach out directly. No middleman, no waiting for a match.\n\nLearn\n\nWork through the material with someone who's already passed it.\n\nFAQ\nIs it free for student",
+  "formFullH": 1699,
+  "formTitle": {
+    "x": 16,
+    "y": 131,
+    "w": 400,
+    "h": 32
+  },
+  "courses": {
+    "x": 16,
+    "y": 624,
+    "w": 400,
+    "h": 66
+  },
+  "price": {
+    "x": 16,
+    "y": 734,
+    "w": 400,
+    "h": 42
+  },
+  "teach": {
+    "x": 16,
+    "y": 820,
+    "w": 400,
+    "h": 41
+  },
+  "submit": {
+    "x": 16,
+    "y": 1539,
+    "w": 400,
+    "h": 44
+  },
+  "bodyHasTestStudent": false,
+  "maxScroll": 931,
+  "confirmYes": {
+    "x": 223,
+    "y": 508,
+    "w": 161,
+    "h": 38
+  },
+  "confirmBox": {
+    "x": 24,
+    "y": 198,
+    "w": 384,
+    "h": 372
+  },
+  "confirmText": "Are you sure about this information?\n\nStudents will contact you on this number, so please make sure it is correct and has WhatsApp.\n\nFull name\nKarim Haddad\nUniversity\nUSEK\nPhone / WhatsApp number\n+96171000000\nGo back\nYes, submit",
+  "feeBox": {
+    "x": 16,
+    "y": 315,
+    "w": 400,
+    "h": 106
+  },
+  "successText": "Passalong\nThanks for applying!\n\nYour profile has been submitted for review. We'll check your GPA and transcript and reach out once your listing is approved.\n\nYour first month is free\n\nYour free month does not start now. It starts on the day we open Passalong to students, and lasts 30 days."
+}
