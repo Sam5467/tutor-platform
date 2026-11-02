@@ -33,6 +33,13 @@ type TutorRow = {
   transcript_path: string | null;
 };
 
+type ContactRow = {
+  tutor_id: string;
+  tutor_name: string;
+  student_name: string | null;
+  contacted_at: string;
+};
+
 const FILTERS: { value: Status | "all"; label: string }[] = [
   { value: "all", label: "All" },
   { value: "pending", label: "Pending" },
@@ -47,6 +54,10 @@ export function AdminDashboard() {
   const [filter, setFilter] = useState<Status | "all">("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [contacts, setContacts] = useState<ContactRow[]>([]);
+  const [contactsError, setContactsError] = useState("");
+  const [showAllContacts, setShowAllContacts] = useState(false);
+  const [contactsThisWeek, setContactsThisWeek] = useState(0);
   const [studentsOpen, setStudentsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [notice, setNotice] = useState("");
@@ -66,6 +77,22 @@ export function AdminDashboard() {
         .select("students_open")
         .maybeSingle();
       setStudentsOpen(!!settings?.students_open);
+
+      // Each time a student pressed "Contact on WhatsApp" on a tutor.
+      const { data: contactData, error: contactFetchError } =
+        await supabase.rpc("admin_contact_log");
+      if (contactFetchError) {
+        console.error("Contact log error:", contactFetchError);
+        setContactsError("We couldn't load the contacts.");
+      } else {
+        const rows: ContactRow[] = contactData ?? [];
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        setContacts(rows);
+        setContactsThisWeek(
+          rows.filter((c) => new Date(c.contacted_at).getTime() > weekAgo)
+            .length
+        );
+      }
 
       const { data, error: fetchError } = await supabase
         .from("tutors")
@@ -118,6 +145,14 @@ export function AdminDashboard() {
     }
     return Object.entries(counts).map(([major, count]) => ({ major, count }));
   }, [tutors]);
+
+  const contactCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const c of contacts) {
+      counts[c.tutor_id] = (counts[c.tutor_id] ?? 0) + 1;
+    }
+    return counts;
+  }, [contacts]);
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = { all: tutors.length };
@@ -410,6 +445,57 @@ export function AdminDashboard() {
         </button>
       </div>
 
+      <div className="border border-stone rounded-lg p-5 mb-10">
+        <h2 className="font-display text-lg text-ink">Contacts</h2>
+        <p className="text-sm text-slate mb-4">
+          Each time a student pressed &quot;Contact on WhatsApp&quot; on a tutor
+          (counted once per student and tutor).
+        </p>
+        {contactsError ? (
+          <p className="text-sm text-red-600">{contactsError}</p>
+        ) : contacts.length === 0 ? (
+          <p className="text-sm text-slate">No contacts yet.</p>
+        ) : (
+          <>
+            <p className="text-sm text-ink mb-3">
+              {contacts.length} in total · {contactsThisWeek} in the last 7 days
+            </p>
+            <ul className="flex flex-col divide-y divide-stone text-sm">
+              {(showAllContacts ? contacts : contacts.slice(0, 10)).map(
+                (c, i) => (
+                  <li
+                    key={`${c.tutor_id}-${c.contacted_at}-${i}`}
+                    className="py-2 flex flex-wrap justify-between gap-x-4"
+                  >
+                    <span className="text-ink">
+                      {c.student_name || "A student"} contacted{" "}
+                      <span className="font-medium">{c.tutor_name}</span>
+                    </span>
+                    <span className="text-slate">
+                      {new Date(c.contacted_at).toLocaleString(undefined, {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </li>
+                )
+              )}
+            </ul>
+            {contacts.length > 10 && (
+              <button
+                type="button"
+                onClick={() => setShowAllContacts(!showAllContacts)}
+                className="text-xs text-slate underline mt-2"
+              >
+                {showAllContacts ? "Show less" : `Show all ${contacts.length}`}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
       <div className="flex flex-col lg:flex-row gap-10">
         <div className="flex-1 min-w-0">
           <h2 className="font-display text-lg text-ink mb-4">
@@ -451,6 +537,10 @@ export function AdminDashboard() {
                     <div className="grid grid-cols-6 gap-4 items-center py-4 text-sm">
                       <div className="flex flex-col items-start">
                         <span className="text-ink">{tutor.full_name}</span>
+                        <span className="text-xs text-slate">
+                          {contactCounts[tutor.id] ?? 0} contact
+                          {(contactCounts[tutor.id] ?? 0) === 1 ? "" : "s"}
+                        </span>
                         <button
                           type="button"
                           onClick={() => {
