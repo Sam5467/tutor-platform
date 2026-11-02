@@ -58,6 +58,11 @@ export function AdminDashboard() {
   const [contactsError, setContactsError] = useState("");
   const [showAllContacts, setShowAllContacts] = useState(false);
   const [contactsThisWeek, setContactsThisWeek] = useState(0);
+  const [signups, setSignups] = useState<{
+    total_accounts: number;
+    accounts_last_7_days: number;
+    student_accounts: number;
+  } | null>(null);
   const [studentsOpen, setStudentsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [notice, setNotice] = useState("");
@@ -77,6 +82,23 @@ export function AdminDashboard() {
         .select("students_open")
         .maybeSingle();
       setStudentsOpen(!!settings?.students_open);
+
+      // How many people made an account.
+      const { data: signupData, error: signupError } = await supabase.rpc(
+        "admin_signup_stats"
+      );
+      if (signupError) {
+        console.error("Sign-up stats error:", signupError);
+      } else {
+        const row = Array.isArray(signupData) ? signupData[0] : signupData;
+        if (row) {
+          setSignups({
+            total_accounts: Number(row.total_accounts),
+            accounts_last_7_days: Number(row.accounts_last_7_days),
+            student_accounts: Number(row.student_accounts),
+          });
+        }
+      }
 
       // Each time a student pressed "Contact on WhatsApp" on a tutor.
       const { data: contactData, error: contactFetchError } =
@@ -446,6 +468,19 @@ export function AdminDashboard() {
       </div>
 
       <div className="border border-stone rounded-lg p-5 mb-10">
+        <h2 className="font-display text-lg text-ink">Sign-ups</h2>
+        {signups ? (
+          <p className="text-sm text-ink mb-6">
+            {signups.total_accounts} accounts · {signups.student_accounts}{" "}
+            students (not tutors) · {signups.accounts_last_7_days} new in the
+            last 7 days
+          </p>
+        ) : (
+          <p className="text-sm text-red-600 mb-6">
+            We couldn&apos;t load the sign-ups.
+          </p>
+        )}
+
         <h2 className="font-display text-lg text-ink">Contacts</h2>
         <p className="text-sm text-slate mb-4">
           Each time a student pressed &quot;Contact on WhatsApp&quot; on a tutor

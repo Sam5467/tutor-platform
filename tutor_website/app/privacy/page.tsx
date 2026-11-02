@@ -117,8 +117,10 @@ export default function PrivacyPage() {
           sign up and password reset.
         </li>
         <li>
-          <strong>Our website hosting provider</strong> serves the site to
-          your browser.
+          <strong>Our website hosting provider</strong> (Vercel) serves the
+          site to your browser and counts visits anonymously (pages viewed,
+          country and type of device), without cookies, so we know how many
+          people use the site.
         </li>
         <li>
           <strong>An email service</strong> sends account emails.

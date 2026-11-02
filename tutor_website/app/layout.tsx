@@ -4,6 +4,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { NoticeBanner } from "@/components/notice-banner";
+import { Analytics } from "@vercel/analytics/next";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -83,6 +84,7 @@ export default function RootLayout({
           <NoticeBanner />
         </Suspense>
         {children}
+        <Analytics />
       </body>
     </html>
   );
