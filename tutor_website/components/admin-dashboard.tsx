@@ -8,6 +8,8 @@ import { BarChart } from "@/components/charts/bar-chart";
 import { Bar } from "@/components/charts/bar";
 import { Grid } from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip";
+import { AdminEditTutor } from "@/components/admin-edit-tutor";
+import type { SessionMode } from "@/lib/session-modes";
 
 type Status = "pending" | "approved" | "rejected";
 
@@ -21,6 +23,7 @@ type TutorRow = {
   courses: string;
   price: number | string;
   bio: string | null;
+  session_mode: SessionMode;
   status: Status;
   paid_until: string | null;
   created_at: string;
@@ -43,6 +46,7 @@ export function AdminDashboard() {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<Status | "all">("all");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [studentsOpen, setStudentsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [notice, setNotice] = useState("");
@@ -66,7 +70,7 @@ export function AdminDashboard() {
       const { data, error: fetchError } = await supabase
         .from("tutors")
         .select(
-          "id, full_name, university, faculty, major, year, courses, price, bio, status, paid_until, created_at, profile_picture_path, tutor_private(gpa, phone, transcript_path)"
+          "id, full_name, university, faculty, major, year, courses, price, bio, session_mode, status, paid_until, created_at, profile_picture_path, tutor_private(gpa, phone, transcript_path)"
         )
         .order("created_at", { ascending: false });
 
@@ -89,6 +93,7 @@ export function AdminDashboard() {
               courses: t.courses,
               price: t.price,
               bio: t.bio,
+              session_mode: t.session_mode,
               status: t.status,
               paid_until: t.paid_until,
               created_at: t.created_at,
@@ -448,9 +453,10 @@ export function AdminDashboard() {
                         <span className="text-ink">{tutor.full_name}</span>
                         <button
                           type="button"
-                          onClick={() =>
-                            setOpenId(openId === tutor.id ? null : tutor.id)
-                          }
+                          onClick={() => {
+                            setOpenId(openId === tutor.id ? null : tutor.id);
+                            setEditingId(null);
+                          }}
                           className="text-xs text-slate underline"
                         >
                           {openId === tutor.id ? "Hide details" : "Details"}
@@ -550,7 +556,23 @@ export function AdminDashboard() {
                       </div>
                     </div>
 
-                    {openId === tutor.id && (
+                    {openId === tutor.id && editingId === tutor.id && (
+                      <AdminEditTutor
+                        tutor={tutor}
+                        onCancel={() => setEditingId(null)}
+                        onSaved={(updated) => {
+                          setTutors((prev) =>
+                            prev.map((t) =>
+                              t.id === tutor.id ? { ...t, ...updated } : t
+                            )
+                          );
+                          setEditingId(null);
+                          setNotice(`${updated.full_name}'s details were saved.`);
+                        }}
+                      />
+                    )}
+
+                    {openId === tutor.id && editingId !== tutor.id && (
                       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 pb-5 text-sm">
                         <div>
                           <dt className="text-xs text-slate">University</dt>
@@ -589,6 +611,18 @@ export function AdminDashboard() {
                           <dd className="text-ink">
                             {new Date(tutor.created_at).toLocaleDateString()}
                           </dd>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNotice("");
+                              setEditingId(tutor.id);
+                            }}
+                            className="rounded-full bg-ink text-paper px-4 py-1.5 text-xs"
+                          >
+                            Edit details
+                          </button>
                         </div>
                       </dl>
                     )}
