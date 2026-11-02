@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { takeReturnTo } from "@/lib/return-to";
 import { CheckCircle2, X } from "lucide-react";
 
 // Short messages shown after arriving from an email link, e.g.
@@ -12,11 +13,21 @@ const NOTICES: Record<string, string> = {
 
 export function NoticeBanner() {
   const params = useSearchParams();
+  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const key = params.get("notice");
     if (!key || !NOTICES[key]) return;
+
+    // Just confirmed after signing up from a tutor's page: go back there.
+    if (key === "confirmed") {
+      const back = takeReturnTo();
+      if (back && back !== window.location.pathname) {
+        router.replace(`${back}?notice=confirmed`);
+        return;
+      }
+    }
     setMessage(NOTICES[key]);
 
     const url = new URL(window.location.href);
@@ -25,7 +36,7 @@ export function NoticeBanner() {
 
     const timer = setTimeout(() => setMessage(null), 8000);
     return () => clearTimeout(timer);
-  }, [params]);
+  }, [params, router]);
 
   if (!message) return null;
 

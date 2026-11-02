@@ -117,6 +117,15 @@ function LoginForm() {
 
         <Turnstile onToken={setCaptchaToken} resetCount={captchaReset} />
 
+        {searchParams.get("next")?.startsWith("/tutors/") &&
+          !searchParams.get("confirmed") &&
+          !error && (
+            <p className="text-sm text-ink">
+              Log in to contact this tutor. New here? Sign up below, it&apos;s
+              free.
+            </p>
+          )}
+
         {searchParams.get("confirmed") && !error && (
           <p className="text-sm text-ink">
             Your email is confirmed. Log in to continue.
@@ -156,7 +165,14 @@ function LoginForm() {
 
         <p className="text-sm text-slate text-center">
           Don't have an account?{" "}
-          <Link href="/signup" className="text-brass underline">
+          <Link
+            href={
+              searchParams.get("next")
+                ? `/signup?next=${encodeURIComponent(searchParams.get("next")!)}`
+                : "/signup"
+            }
+            className="text-brass underline"
+          >
             Sign up
           </Link>
         </p>

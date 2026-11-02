@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
 import { ResendConfirmation } from "@/components/resend-confirmation";
 import { ALREADY_REGISTERED_MESSAGE, authErrorMessage } from "@/lib/errors";
+import { saveReturnTo } from "@/lib/return-to";
 
 export default function StudentSignupPage() {
   const router = useRouter();
@@ -77,6 +78,8 @@ export default function StudentSignupPage() {
       return;
     }
 
+    // Came here from a tutor's page: bring them back there once confirmed.
+    saveReturnTo(new URLSearchParams(window.location.search).get("next"));
     setNeedsConfirmation(!data.session);
     setSubmitted(true);
   };

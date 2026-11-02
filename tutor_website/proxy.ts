@@ -32,6 +32,7 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Browsing tutors is open to everyone; only applying needs an account.
   // Test mode (and locally): no login needed. Logged-out visitors can try
   // the apply form, but nothing they submit is saved.
   const loginFree = process.env.NODE_ENV === "development" || TEST_MODE;
@@ -46,5 +47,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/tutors", "/tutors/:path*", "/become-a-tutor"],
+  matcher: ["/become-a-tutor"],
 };

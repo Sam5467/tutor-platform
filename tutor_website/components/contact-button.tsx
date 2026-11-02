@@ -12,6 +12,7 @@ type ContactButtonProps = {
 
 export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
   const [contacted, setContacted] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [checking, setChecking] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,6 +25,7 @@ export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
       } = await supabase.auth.getUser();
 
       if (user) {
+        setLoggedIn(true);
         const { data } = await supabase
           .from("contact_requests")
           .select("id")
@@ -39,7 +41,15 @@ export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
   }, [tutorId]);
 
   const handleContact = async () => {
-    if (loading) return;
+    if (loading || checking) return;
+    // Browsing is open to everyone, but contacting needs an account. Send
+    // them to log in, then straight back to this tutor.
+    if (!loggedIn && !demo) {
+      window.location.assign(
+        `/login?next=${encodeURIComponent(`/tutors/${tutorId}`)}`
+      );
+      return;
+    }
     if (demo) {
       setError("This is a demo tutor, so there's no WhatsApp number to open.");
       return;
@@ -93,6 +103,11 @@ export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
       >
         {loading ? "Opening WhatsApp..." : "Contact on WhatsApp"}
       </button>
+      {!checking && !loggedIn && !demo && (
+        <p className="text-xs text-slate">
+          You&apos;ll need a free account to contact a tutor.
+        </p>
+      )}
       {error && <p className="text-xs text-red-600">{error}</p>}
       {!checking && contacted && (
         <p className="text-xs text-slate">
