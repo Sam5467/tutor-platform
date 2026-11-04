@@ -72,7 +72,7 @@ export function TutorGrid({
             <option value="all">All universities</option>
             {options.map((u) => (
               <option key={u.short} value={u.short}>
-                {u.short}
+                {u.label ?? u.short}
               </option>
             ))}
           </select>

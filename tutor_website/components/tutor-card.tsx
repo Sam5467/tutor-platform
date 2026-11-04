@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { universityLabel } from "@/lib/universities";
 import type { Tutor } from "@/lib/tutors";
 import { fieldCardColors } from "@/lib/field-card-colors";
 import { sessionModeLabel } from "@/lib/session-modes";
@@ -51,7 +52,7 @@ export function TutorCard({
         <div className="min-w-0 flex-1">
           <p className="font-display text-base leading-tight truncate">{name}</p>
           <p className="text-xs opacity-70 truncate">
-            {university} · {year}
+            {universityLabel(university)} · {year}
           </p>
         </div>
         <div className="shrink-0 text-right leading-tight">

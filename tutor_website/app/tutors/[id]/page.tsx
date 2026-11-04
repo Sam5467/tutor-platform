@@ -7,6 +7,7 @@ import { BackButton } from "@/components/back-button";
 import { ReviewsSection } from "@/components/reviews-section";
 import { getStudentsOpen } from "@/lib/site-settings";
 import { TEST_MODE } from "@/lib/test-mode";
+import { universityLabel } from "@/lib/universities";
 import { demoTutors } from "@/lib/demo-tutors";
 import type { Tutor } from "@/lib/tutors";
 import { sessionModeLabel } from "@/lib/session-modes";
@@ -120,7 +121,7 @@ function TutorProfile({
                 {tutor.major} · {tutor.year}
               </p>
               <p className="text-slate text-sm">
-                {tutor.university} · {sessionModeLabel(tutor.sessionMode)}
+                {universityLabel(tutor.university)} · {sessionModeLabel(tutor.sessionMode)}
               </p>
             </div>
           </div>
