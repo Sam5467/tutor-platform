@@ -21,6 +21,7 @@ import {
 
 export default function BecomeATutorPage() {
   const [university, setUniversity] = useState("");
+  const [otherUniversity, setOtherUniversity] = useState("");
   const [faculty, setFaculty] = useState("");
   const [major, setMajor] = useState("");
   const [otherMajor, setOtherMajor] = useState("");
@@ -93,6 +94,9 @@ export default function BecomeATutorPage() {
   }, []);
 
   const OTHER_MAJOR = "__other";
+  const OTHER_UNIVERSITY = "__other";
+  const finalUniversity =
+    university === OTHER_UNIVERSITY ? otherUniversity.trim() : university;
   const majors = fields.find((f) => f.name === faculty)?.majors ?? [];
   const finalMajor = major === OTHER_MAJOR ? otherMajor.trim() : major;
 
@@ -220,7 +224,7 @@ export default function BecomeATutorPage() {
     const { error: insertError } = await supabase.rpc(
       "submit_tutor_application",
       {
-        p_university: university,
+        p_university: finalUniversity,
         p_faculty: faculty,
         p_major: finalMajor,
         p_year: year,
@@ -332,7 +336,21 @@ export default function BecomeATutorPage() {
                 {u.name} ({u.short})
               </option>
             ))}
+            <option value={OTHER_UNIVERSITY}>
+              My university isn&apos;t listed
+            </option>
           </select>
+          {university === OTHER_UNIVERSITY && (
+            <input
+              type="text"
+              required
+              maxLength={100}
+              value={otherUniversity}
+              onChange={(e) => setOtherUniversity(e.target.value)}
+              placeholder="Type the full name of your university"
+              className="border border-stone rounded-lg py-2 px-4 text-ink mt-2"
+            />
+          )}
           <p className="text-xs text-slate">
             You can&apos;t change this later, so choose carefully.
           </p>
@@ -599,7 +617,7 @@ export default function BecomeATutorPage() {
               <dt className="text-slate">Full name</dt>
               <dd className="text-ink font-medium mb-3">{studentName}</dd>
               <dt className="text-slate">University</dt>
-              <dd className="text-ink font-medium mb-3">{university}</dd>
+              <dd className="text-ink font-medium mb-3">{finalUniversity}</dd>
               <dt className="text-slate">Phone / WhatsApp number</dt>
               <dd className="text-ink font-medium">+{normalizedPhone}</dd>
             </dl>

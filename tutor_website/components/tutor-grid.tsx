@@ -40,7 +40,15 @@ export function TutorGrid({
 
   // Only offer universities that have tutors here.
   const present = new Set(tutors.map((t) => t.university));
-  const options = universities.filter((u) => present.has(u.short));
+  const options: { short: string; label?: string }[] = universities.filter(
+    (u) => present.has(u.short)
+  );
+  // Universities typed in by tutors ("My university isn't listed").
+  for (const name of present) {
+    if (!universities.some((u) => u.short === name)) {
+      options.push({ short: name });
+    }
+  }
 
   // A chosen university only shows its own tutors; no one is moved to the top.
   const filtered = sorted.filter(
