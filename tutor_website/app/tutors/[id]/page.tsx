@@ -8,6 +8,7 @@ import { ReviewsSection } from "@/components/reviews-section";
 import { getStudentsOpen } from "@/lib/site-settings";
 import { TEST_MODE } from "@/lib/test-mode";
 import { universityLabel } from "@/lib/universities";
+import { TrackProfileView } from "@/components/track-profile-view";
 import { demoTutors } from "@/lib/demo-tutors";
 import type { Tutor } from "@/lib/tutors";
 import { sessionModeLabel } from "@/lib/session-modes";
@@ -101,6 +102,7 @@ function TutorProfile({
   return (
     <div className="max-w-4xl mx-auto py-16 px-4">
       <BackButton fallback="/tutors" label="Back" />
+      {!demo && !isOwnProfile && <TrackProfileView tutorId={tutor.id} />}
       <div className="flex flex-col sm:flex-row gap-8">
         <div className="flex-1">
           <div className="flex items-center gap-4 mb-6">

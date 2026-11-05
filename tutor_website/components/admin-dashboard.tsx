@@ -40,6 +40,22 @@ type ContactRow = {
   contacted_at: string;
 };
 
+type CountRow = { label: string; count: number; empty: number };
+
+type Insights = {
+  funnel: {
+    accounts: number;
+    confirmed: number;
+    contacted: number;
+    reviewed: number;
+  };
+  heard_from: { source: string; count: number }[];
+  top_searches: CountRow[];
+  top_majors: CountRow[];
+  no_results: { label: string; university: string | null; count: number }[];
+  views: Record<string, { total: number; week: number }>;
+};
+
 const FILTERS: { value: Status | "all"; label: string }[] = [
   { value: "all", label: "All" },
   { value: "pending", label: "Pending" },
@@ -58,6 +74,7 @@ export function AdminDashboard() {
   const [contactsError, setContactsError] = useState("");
   const [showAllContacts, setShowAllContacts] = useState(false);
   const [contactsThisWeek, setContactsThisWeek] = useState(0);
+  const [insights, setInsights] = useState<Insights | null>(null);
   const [signups, setSignups] = useState<{
     total_accounts: number;
     accounts_last_7_days: number;
@@ -82,6 +99,16 @@ export function AdminDashboard() {
         .select("students_open")
         .maybeSingle();
       setStudentsOpen(!!settings?.students_open);
+
+      // Searches, profile views, how people heard about us, and the funnel.
+      const { data: insightData, error: insightError } = await supabase.rpc(
+        "admin_insights"
+      );
+      if (insightError) {
+        console.error("Insights error:", insightError);
+      } else {
+        setInsights(insightData as Insights);
+      }
 
       // How many people made an account.
       const { data: signupData, error: signupError } = await supabase.rpc(
@@ -467,6 +494,8 @@ export function AdminDashboard() {
         </button>
       </div>
 
+      <InsightsPanel insights={insights} />
+
       <div className="border border-stone rounded-lg p-5 mb-10">
         <h2 className="font-display text-lg text-ink">Sign-ups</h2>
         {signups ? (
@@ -573,6 +602,7 @@ export function AdminDashboard() {
                       <div className="flex flex-col items-start">
                         <span className="text-ink">{tutor.full_name}</span>
                         <span className="text-xs text-slate">
+                          {insights?.views[tutor.id]?.total ?? 0} views ·{" "}
                           {contactCounts[tutor.id] ?? 0} contact
                           {(contactCounts[tutor.id] ?? 0) === 1 ? "" : "s"}
                         </span>
@@ -768,6 +798,128 @@ export function AdminDashboard() {
             <ChartTooltip />
           </BarChart>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// What students do on the site: the funnel, how they heard about us, and what
+// they search for (last 30 days).
+function InsightsPanel({ insights }: { insights: Insights | null }) {
+  if (!insights) {
+    return (
+      <div className="border border-stone rounded-lg p-5 mb-10">
+        <h2 className="font-display text-lg text-ink">Insights</h2>
+        <p className="text-sm text-red-600">We couldn&apos;t load the insights.</p>
+      </div>
+    );
+  }
+
+  const { funnel } = insights;
+  const steps = [
+    { label: "Student accounts", value: funnel.accounts },
+    { label: "Confirmed their email", value: funnel.confirmed },
+    { label: "Contacted a tutor", value: funnel.contacted },
+    { label: "Left a review", value: funnel.reviewed },
+  ];
+
+  const countList = (rows: CountRow[], emptyText: string) =>
+    rows.length === 0 ? (
+      <p className="text-sm text-slate">{emptyText}</p>
+    ) : (
+      <ul className="flex flex-col divide-y divide-stone text-sm">
+        {rows.map((r) => (
+          <li key={r.label} className="py-1.5 flex justify-between gap-4">
+            <span className="text-ink">{r.label}</span>
+            <span className="text-slate shrink-0">
+              {r.count}
+              {r.empty > 0 && (
+                <span className="text-red-600"> · {r.empty} found nobody</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    );
+
+  return (
+    <div className="border border-stone rounded-lg p-5 mb-10 flex flex-col gap-8">
+      <div>
+        <h2 className="font-display text-lg text-ink">Funnel</h2>
+        <p className="text-sm text-slate mb-4">
+          Students only (tutors and admins aren&apos;t counted). Visitors are in
+          the Analytics tab on Vercel.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {steps.map((step, i) => (
+            <div key={step.label} className="rounded-lg bg-stone/40 p-3">
+              <p className="font-display text-2xl text-ink">{step.value}</p>
+              <p className="text-xs text-slate">{step.label}</p>
+              {i > 0 && steps[i - 1].value > 0 && (
+                <p className="text-xs text-brass mt-1">
+                  {Math.round((step.value / steps[i - 1].value) * 100)}% of the
+                  step before
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="font-display text-lg text-ink mb-3">
+          How people heard about us
+        </h2>
+        <ul className="flex flex-col divide-y divide-stone text-sm">
+          {insights.heard_from.map((row) => (
+            <li key={row.source} className="py-1.5 flex justify-between gap-4">
+              <span className="text-ink">{row.source}</span>
+              <span className="text-slate">{row.count}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h2 className="font-display text-lg text-ink mb-3">
+            Top searches (30 days)
+          </h2>
+          {countList(insights.top_searches, "No searches yet.")}
+        </div>
+        <div>
+          <h2 className="font-display text-lg text-ink mb-3">
+            Top majors opened (30 days)
+          </h2>
+          {countList(insights.top_majors, "No majors opened yet.")}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="font-display text-lg text-ink">Found nobody (30 days)</h2>
+        <p className="text-sm text-slate mb-3">
+          Searches with no tutor to show. These are the tutors to recruit next.
+        </p>
+        {insights.no_results.length === 0 ? (
+          <p className="text-sm text-slate">Nothing yet.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-stone text-sm">
+            {insights.no_results.map((r) => (
+              <li
+                key={`${r.label}-${r.university ?? "all"}`}
+                className="py-1.5 flex justify-between gap-4"
+              >
+                <span className="text-ink">
+                  {r.label}
+                  {r.university && (
+                    <span className="text-slate"> · {r.university}</span>
+                  )}
+                </span>
+                <span className="text-red-600 shrink-0">{r.count}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

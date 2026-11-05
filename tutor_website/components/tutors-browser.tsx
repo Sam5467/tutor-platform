@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { FieldPicker } from "@/components/field-picker";
@@ -13,7 +13,7 @@ import { tutorMatchesCourse } from "@/lib/course-search";
 import { demoTutors } from "@/lib/demo-tutors";
 import { TEST_MODE } from "@/lib/test-mode";
 import { fields } from "@/lib/fields";
-import type { SessionMode } from "@/lib/session-modes";
+import { modeMatches, type SessionMode } from "@/lib/session-modes";
 import {
   TUTOR_COLUMNS,
   rowToTutor,
@@ -123,17 +123,60 @@ export function TutorsBrowser() {
   // Picking a field or major needs no data; only the tutor lists wait.
   const needsTutors = searching || (field && major);
 
-  let view: React.ReactNode;
-  if (needsTutors && tutors === null) {
-    view = <TutorGridSkeleton />;
-  } else if (tutors && searching) {
+  // The tutors shown right now (before the university / mode filters), or
+  // null while a picker is shown.
+  let shownTutors: Tutor[] | null = null;
+  if (tutors && searching) {
     // A search covers the chosen major, or every tutor when none is chosen.
     const pool = major
       ? tutors.filter((t) => t.faculty === field && t.major === major)
       : tutors;
+    shownTutors = pool.filter((t) => tutorMatchesCourse(t.courses, query));
+  } else if (tutors && field && major) {
+    shownTutors = tutors.filter((t) => t.faculty === field && t.major === major);
+  }
+  const resultCount =
+    shownTutors?.filter(
+      (t) =>
+        (university === "all" || t.university === university) &&
+        modeMatches(t.sessionMode, mode)
+    ).length ?? null;
+
+  // Save each search (without names) once the student stops typing, so the
+  // admin can see what students look for and what finds nobody.
+  const lastLogged = useRef("");
+  useEffect(() => {
+    if (resultCount === null || process.env.NODE_ENV === "development") return;
+    const q = query.trim();
+    if (searching && q.length < 2) return;
+    const key = JSON.stringify([q.toLowerCase(), field, major, university, mode]);
+    if (key === lastLogged.current) return;
+
+    const timer = setTimeout(() => {
+      lastLogged.current = key;
+      createClient()
+        .rpc("log_search", {
+          p_query: searching ? q : null,
+          p_field: field,
+          p_major: major,
+          p_university: university === "all" ? null : university,
+          p_session_mode: mode === "any" ? null : mode,
+          p_results: resultCount,
+        })
+        .then(({ error }) => {
+          if (error) console.error("Search log error:", error);
+        });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [resultCount, query, searching, field, major, university, mode]);
+
+  let view: React.ReactNode;
+  if (needsTutors && tutors === null) {
+    view = <TutorGridSkeleton />;
+  } else if (shownTutors && searching) {
     view = (
       <TutorGrid
-        tutors={pool.filter((t) => tutorMatchesCourse(t.courses, query))}
+        tutors={shownTutors}
         heading={`Results for "${query.trim()}"`}
         onBack={() => setQuery("")}
         backLabel="Clear search"
@@ -153,7 +196,7 @@ export function TutorsBrowser() {
   } else {
     view = (
       <TutorGrid
-        tutors={(tutors ?? []).filter((t) => t.faculty === field && t.major === major)}
+        tutors={shownTutors ?? []}
         heading={major}
         onBack={() => setMajor(null)}
         backLabel="Back to majors"

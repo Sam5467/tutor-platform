@@ -9,10 +9,21 @@ import { ResendConfirmation } from "@/components/resend-confirmation";
 import { ALREADY_REGISTERED_MESSAGE, authErrorMessage } from "@/lib/errors";
 import { FollowInstagram } from "@/components/instagram";
 
+const HEARD_FROM_OPTIONS = [
+  "Instagram",
+  "TikTok",
+  "WhatsApp",
+  "A friend",
+  "A tutor",
+  "Google",
+  "Other",
+];
+
 export default function StudentSignupPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [heardFrom, setHeardFrom] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -72,7 +83,7 @@ export default function StudentSignupPage() {
         // return_to: the page they came from (e.g. /become-a-tutor). The
         // confirmation email template puts it in the link, so they land back
         // there even if they open the email in another app or device.
-        data: { full_name: fullName, return_to: returnTo },
+        data: { full_name: fullName, return_to: returnTo, heard_from: heardFrom },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
         captchaToken: captchaToken ?? undefined,
       },
@@ -220,6 +231,25 @@ export default function StudentSignupPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="border border-stone rounded-lg py-2 px-4 text-ink"
           />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="heard-from" className="text-sm text-slate">
+            How did you hear about us? (optional)
+          </label>
+          <select
+            id="heard-from"
+            value={heardFrom}
+            onChange={(e) => setHeardFrom(e.target.value)}
+            className="border border-stone rounded-lg py-2 px-4 text-ink bg-paper"
+          >
+            <option value="">Choose one</option>
+            {HEARD_FROM_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
 
         <Turnstile onToken={setCaptchaToken} resetCount={captchaReset} />

@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   return (
     <div className="max-w-2xl mx-auto py-16 px-4">
       <h1 className="font-display text-2xl text-ink mb-2">Privacy Policy</h1>
-      <p className="text-sm text-slate mb-8">Last updated: 2 November 2026</p>
+      <p className="text-sm text-slate mb-8">Last updated: 5 November 2026</p>
 
       <p className="text-ink mb-4">
         Passalong is an independent, student-run platform that connects
@@ -59,7 +59,9 @@ export default function PrivacyPage() {
       <p className="text-ink mb-4">
         <strong>Automatically:</strong> to keep you logged in we use cookies,
         and our bot check (see below) looks at basic browser and connection
-        details to tell people from automated programs.
+        details to tell people from automated programs. We also count, without
+        your name, which courses are searched for and how often each tutor&apos;s
+        profile is opened, so we know which tutors students need.
       </p>
 
       <h2 className="font-display text-lg text-ink mt-8 mb-3">
