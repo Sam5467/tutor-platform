@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
 import { ResendConfirmation } from "@/components/resend-confirmation";
 import { ALREADY_REGISTERED_MESSAGE, authErrorMessage } from "@/lib/errors";
+import { FollowInstagram } from "@/components/instagram";
 
 export default function StudentSignupPage() {
   const router = useRouter();
@@ -32,6 +33,19 @@ export default function StudentSignupPage() {
     const next = new URLSearchParams(window.location.search).get("next");
     return next && /^\/(?!\/)/.test(next) ? next : "/";
   });
+
+  // On your computer only: /signup?preview=check-email jumps straight to the
+  // "Check your email" screen.
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    if (new URLSearchParams(window.location.search).get("preview") !== "check-email") return;
+    const timer = setTimeout(() => {
+      setEmail("student@example.com");
+      setNeedsConfirmation(true);
+      setSubmitted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +122,8 @@ export default function StudentSignupPage() {
         >
           Go to log in
         </Link>
+
+        <FollowInstagram className="mt-8" />
 
         <ResendConfirmation
           email={email}

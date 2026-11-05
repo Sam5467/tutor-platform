@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ReviewsSection } from "@/components/reviews-section";
 import { normalizePhone } from "@/lib/phone";
 import { dbErrorMessage } from "@/lib/errors";
+import { FollowInstagram } from "@/components/instagram";
 import {
   PHOTO_RULE,
   TRANSCRIPT_RULE,
@@ -86,6 +87,14 @@ export default function BecomeATutorPage() {
       } else if (TEST_MODE || process.env.NODE_ENV === "development") {
         setPreviewOnly(true);
         setStudentName("Test Student");
+      }
+      // On your computer only: /become-a-tutor?preview=thanks jumps straight
+      // to the "Thanks for applying" screen.
+      if (
+        process.env.NODE_ENV === "development" &&
+        new URLSearchParams(window.location.search).get("preview") === "thanks"
+      ) {
+        setSubmitted(true);
       }
       setCheckingExisting(false);
     }
@@ -298,6 +307,7 @@ export default function BecomeATutorPage() {
           and transcript and reach out once your listing is approved.
         </p>
         <FeeNotice state={siteState} className="mt-8 text-left" />
+        <FollowInstagram className="mt-8" />
       </div>
     );
   }

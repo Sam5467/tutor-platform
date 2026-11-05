@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Pacifico } from "next/font/google";
+import { INSTAGRAM_URL, InstagramIcon } from "@/components/instagram";
 
 const pacifico = Pacifico({
   subsets: ["latin"],
@@ -31,6 +32,17 @@ export function HeaderShell({
 
   const navLinks = (
     <>
+      <a
+        href={INSTAGRAM_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Passalong on Instagram"
+        onClick={() => setMenuOpen(false)}
+        className="inline-flex items-center gap-2 hover:text-brass transition-colors"
+      >
+        <InstagramIcon />
+        <span className="md:hidden">Instagram</span>
+      </a>
       {!approvedTutorId && showFindTutor && (
         <Link href="/tutors" onClick={() => setMenuOpen(false)}>
           Find a tutor

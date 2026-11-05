@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { INSTAGRAM_URL, InstagramIcon } from "@/components/instagram";
 
 export function Footer() {
   return (
@@ -17,6 +18,15 @@ export function Footer() {
         <Link href="/contact" className="hover:text-brass transition-colors">
           Contact
         </Link>
+        <a
+          href={INSTAGRAM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Passalong on Instagram"
+          className="hover:text-brass transition-colors"
+        >
+          <InstagramIcon />
+        </a>
       </div>
     </footer>
   );
