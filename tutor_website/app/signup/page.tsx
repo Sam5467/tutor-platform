@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Turnstile, TURNSTILE_ENABLED } from "@/components/turnstile";
 import { ResendConfirmation } from "@/components/resend-confirmation";
@@ -39,11 +39,12 @@ export default function StudentSignupPage() {
   const [captchaReset, setCaptchaReset] = useState(0);
 
   // Where to send them after confirming: only paths on this site.
-  const [returnTo] = useState(() => {
-    if (typeof window === "undefined") return "/";
-    const next = new URLSearchParams(window.location.search).get("next");
-    return next && /^\/(?!\/)/.test(next) ? next : "/";
-  });
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get("next");
+  const returnTo = nextParam && /^\/(?!\/)/.test(nextParam) ? nextParam : "/";
+  const applyingAsTutor = returnTo === "/become-a-tutor";
+  const loginHref =
+    returnTo === "/" ? "/login" : `/login?next=${encodeURIComponent(returnTo)}`;
 
   // On your computer only: /signup?preview=check-email jumps straight to the
   // "Check your email" screen.
@@ -128,7 +129,7 @@ export default function StudentSignupPage() {
           account, then log in.
         </p>
         <Link
-          href={returnTo === "/" ? "/login" : `/login?next=${encodeURIComponent(returnTo)}`}
+          href={loginHref}
           className="inline-block mt-6 rounded-full bg-ink text-paper px-8 py-3 text-sm font-medium"
         >
           Go to log in
@@ -168,9 +169,24 @@ export default function StudentSignupPage() {
 
   return (
     <div className="max-w-md mx-auto py-16 px-4">
-      <h1 className="font-display text-2xl text-ink mb-8 text-center">
-        Create your student account
-      </h1>
+      {applyingAsTutor ? (
+        <div className="text-center mb-8">
+          <h1 className="font-display text-2xl text-ink mb-2">
+            Create a free account to apply as a tutor
+          </h1>
+          <p className="text-sm text-slate">
+            It takes 1 minute. Right after, you&apos;ll fill in your tutor
+            application.{" "}
+            <Link href={loginHref} className="text-brass underline">
+              Already have an account? Log in
+            </Link>
+          </p>
+        </div>
+      ) : (
+        <h1 className="font-display text-2xl text-ink mb-8 text-center">
+          Create your student account
+        </h1>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div className="flex flex-col sm:flex-row gap-5">
@@ -257,7 +273,7 @@ export default function StudentSignupPage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
         {alreadyRegistered && (
           <p className="text-sm text-slate">
-            <Link href="/login" className="text-brass underline">
+            <Link href={loginHref} className="text-brass underline">
               Log in
             </Link>{" "}
             or{" "}
@@ -290,7 +306,7 @@ export default function StudentSignupPage() {
 
         <p className="text-sm text-slate text-center">
           Already have an account?{" "}
-          <Link href="/login" className="text-brass underline">
+          <Link href={loginHref} className="text-brass underline">
             Log in
           </Link>
         </p>

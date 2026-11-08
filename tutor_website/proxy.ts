@@ -38,9 +38,11 @@ export async function proxy(request: NextRequest) {
   const loginFree = process.env.NODE_ENV === "development" || TEST_MODE;
 
   if (!user && !loginFree) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", request.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
+    // Most people arriving here (e.g. from an ad) don't have an account yet,
+    // so send them to sign up; the sign-up page links to log in for the rest.
+    const signupUrl = new URL("/signup", request.url);
+    signupUrl.searchParams.set("next", request.nextUrl.pathname);
+    return NextResponse.redirect(signupUrl);
   }
 
   return response;
