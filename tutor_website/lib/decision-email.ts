@@ -1,8 +1,8 @@
 // The emails a tutor gets when an admin approves, rejects or unlists them.
 import { MONTHLY_FEE } from "@/lib/listing-fee";
 
-const CONTACT_EMAIL = "passalonglb@gmail.com";
-const SITE_URL = "https://www.passalonglb.com";
+export const CONTACT_EMAIL = "passalonglb@gmail.com";
+export const SITE_URL = "https://www.passalonglb.com";
 
 export type Decision = "approved" | "rejected" | "unlisted";
 
@@ -87,6 +87,16 @@ export function buildDecisionEmail(input: EmailInput): {
     ];
   }
 
+  return { subject, ...renderEmail(name, lines, button) };
+}
+
+// The shared look of our emails: greeting, paragraphs, an optional button and
+// the sign-off, as HTML and as plain text.
+export function renderEmail(
+  name: string,
+  lines: string[],
+  button: { label: string; url: string } | null
+): { html: string; text: string } {
   const text = [
     `Hi ${name},`,
     "",
@@ -115,5 +125,5 @@ export function buildDecisionEmail(input: EmailInput): {
   </div>
 </body></html>`;
 
-  return { subject, html, text };
+  return { html, text };
 }

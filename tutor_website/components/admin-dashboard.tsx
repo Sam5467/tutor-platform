@@ -40,6 +40,15 @@ type ContactRow = {
   contacted_at: string;
 };
 
+type Unfinished = {
+  student_id: string;
+  full_name: string | null;
+  email: string;
+  signed_up_at: string;
+  confirmed: boolean;
+  reminded_at: string | null;
+};
+
 type CountRow = { label: string; count: number; empty: number };
 
 type Insights = {
@@ -75,6 +84,7 @@ export function AdminDashboard() {
   const [showAllContacts, setShowAllContacts] = useState(false);
   const [contactsThisWeek, setContactsThisWeek] = useState(0);
   const [insights, setInsights] = useState<Insights | null>(null);
+  const [unfinished, setUnfinished] = useState<Unfinished[] | null>(null);
   const [signups, setSignups] = useState<{
     total_accounts: number;
     accounts_last_7_days: number;
@@ -108,6 +118,15 @@ export function AdminDashboard() {
         console.error("Insights error:", insightError);
       } else {
         setInsights(insightData as Insights);
+      }
+
+      // Signed up to become a tutor but never applied.
+      const { data: unfinishedData, error: unfinishedError } =
+        await supabase.rpc("admin_unfinished_applicants");
+      if (unfinishedError) {
+        console.error("Unfinished applications error:", unfinishedError);
+      } else {
+        setUnfinished(unfinishedData ?? []);
       }
 
       // How many people made an account.
@@ -495,6 +514,8 @@ export function AdminDashboard() {
       </div>
 
       <InsightsPanel insights={insights} />
+
+      <UnfinishedPanel rows={unfinished} onChange={setUnfinished} />
 
       <div className="border border-stone rounded-lg p-5 mb-10">
         <h2 className="font-display text-lg text-ink">Sign-ups</h2>
@@ -921,6 +942,184 @@ function InsightsPanel({ insights }: { insights: Insights | null }) {
           </ul>
         )}
       </div>
+    </div>
+  );
+}
+
+// People who signed up from "Become a tutor" but never applied, with a button
+// to email them a reminder.
+function UnfinishedPanel({
+  rows,
+  onChange,
+}: {
+  rows: Unfinished[] | null;
+  onChange: (rows: Unfinished[]) => void;
+}) {
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+
+  if (rows === null) {
+    return (
+      <div className="border border-stone rounded-lg p-5 mb-10">
+        <h2 className="font-display text-lg text-ink">
+          Signed up to tutor, didn&apos;t apply
+        </h2>
+        <p className="text-sm text-red-600">We couldn&apos;t load this list.</p>
+      </div>
+    );
+  }
+
+  const send = async (person: Unfinished): Promise<boolean> => {
+    const result = await fetch("/api/application-reminder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId: person.student_id }),
+    })
+      .then((res) => res.json())
+      .catch(() => ({ sent: false, reason: "The email couldn't be sent." }));
+
+    if (!result.sent) {
+      setMessage(
+        `Not sent to ${person.full_name || person.email}: ${result.reason}`
+      );
+      return false;
+    }
+    person.reminded_at = result.remindedAt;
+    return true;
+  };
+
+  const remindOne = async (person: Unfinished) => {
+    if (
+      person.reminded_at &&
+      !window.confirm(
+        `${person.full_name || person.email} was already reminded. Send another email?`
+      )
+    ) {
+      return;
+    }
+    setMessage("");
+    setSendingId(person.student_id);
+    if (await send(person)) {
+      setMessage(`Reminder sent to ${person.full_name || person.email}.`);
+    }
+    setSendingId(null);
+    onChange([...rows]);
+  };
+
+  const notYetReminded = rows.filter((r) => r.confirmed && !r.reminded_at);
+  // Resend's free plan sends 100 emails a day, shared with the sign-up
+  // emails, so one click sends at most this many (oldest sign-ups first).
+  const BATCH = 40;
+  const batch = notYetReminded.slice(-BATCH);
+
+  const remindAll = async () => {
+    if (
+      !window.confirm(
+        `Send the reminder email to ${batch.length} people who haven't been reminded yet?${
+          notYetReminded.length > batch.length
+            ? `
+
+That's the first ${batch.length} of ${notYetReminded.length}, to stay under the daily email limit. Send the rest tomorrow.`
+            : ""
+        }`
+      )
+    ) {
+      return;
+    }
+    setMessage("");
+    let sent = 0;
+    for (const person of batch) {
+      setSendingId(person.student_id);
+      if (!(await send(person))) break;
+      sent += 1;
+    }
+    setSendingId(null);
+    onChange([...rows]);
+    if (sent === batch.length) {
+      setMessage(`Reminder sent to ${sent} people.`);
+    }
+  };
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "short",
+    });
+
+  return (
+    <div className="border border-stone rounded-lg p-5 mb-10">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+        <div>
+          <h2 className="font-display text-lg text-ink">
+            Signed up to tutor, didn&apos;t apply ({rows.length})
+          </h2>
+          <p className="text-sm text-slate">
+            They created an account to become a tutor (everyone who signed up
+            before the site opened to students, then anyone who signed up from
+            &quot;Become a tutor&quot;) but never sent an application. The
+            reminder email links straight to the form.
+          </p>
+        </div>
+        {notYetReminded.length > 0 && (
+          <button
+            type="button"
+            disabled={sendingId !== null}
+            onClick={remindAll}
+            className="rounded-full bg-ink text-paper px-4 py-2 text-xs shrink-0 disabled:opacity-60"
+          >
+            {notYetReminded.length > BATCH
+              ? `Remind the next ${BATCH} (of ${notYetReminded.length})`
+              : `Remind all not yet reminded (${notYetReminded.length})`}
+          </button>
+        )}
+      </div>
+
+      {message && <p className="text-sm text-ink mb-3">{message}</p>}
+
+      {rows.length === 0 ? (
+        <p className="text-sm text-slate">Nobody right now.</p>
+      ) : (
+        <ul className="flex flex-col divide-y divide-stone text-sm">
+          {rows.map((person) => (
+            <li
+              key={person.student_id}
+              className="py-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1"
+            >
+              <div className="min-w-0">
+                <p className="text-ink">{person.full_name || "No name"}</p>
+                <p className="text-xs text-slate break-all">
+                  {person.email} · signed up {formatDate(person.signed_up_at)}
+                </p>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                {!person.confirmed ? (
+                  <span className="text-slate">Email not confirmed</span>
+                ) : (
+                  <>
+                    {person.reminded_at && (
+                      <span className="text-green-700">
+                        Reminded {formatDate(person.reminded_at)}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      disabled={sendingId !== null}
+                      onClick={() => remindOne(person)}
+                      className="rounded-full border border-stone px-3 py-1 text-slate disabled:opacity-60"
+                    >
+                      {sendingId === person.student_id
+                        ? "Sending..."
+                        : person.reminded_at
+                          ? "Remind again"
+                          : "Send reminder"}
+                    </button>
+                  </>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -10,7 +10,7 @@ export default function TermsPage() {
       <h1 className="font-display text-2xl text-ink mb-2">
         Terms of Service
       </h1>
-      <p className="text-sm text-slate mb-8">Last updated: 25 October 2026</p>
+      <p className="text-sm text-slate mb-8">Last updated: 15 November 2026</p>
 
       <p className="text-ink mb-4">
         By creating an account or using Passalong, you agree to these terms
@@ -70,7 +70,7 @@ export default function TermsPage() {
       <ul className="list-disc pl-6 text-ink mb-4 flex flex-col gap-2">
         <li>
           To apply you must submit your GPA and a transcript that clearly shows
-          both your GPA and your university student ID. You must only list courses
+          your GPA. You must only list courses
           you have really passed. Information you give must be true.
         </li>
         <li>

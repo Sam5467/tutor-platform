@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   return (
     <div className="max-w-2xl mx-auto py-16 px-4">
       <h1 className="font-display text-2xl text-ink mb-2">Privacy Policy</h1>
-      <p className="text-sm text-slate mb-8">Last updated: 5 November 2026</p>
+      <p className="text-sm text-slate mb-8">Last updated: 15 November 2026</p>
 
       <p className="text-ink mb-4">
         Passalong is an independent, student-run platform that connects
@@ -48,7 +48,8 @@ export default function PrivacyPage() {
         <li>Your phone / WhatsApp number.</li>
         <li>Your GPA.</li>
         <li>
-          Your transcript file, which shows your GPA and your university student ID.
+          Your transcript file, which shows your GPA and may show other details
+          such as your student ID.
         </li>
         <li>Optionally, a profile picture.</li>
         <li>

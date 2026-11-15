@@ -525,9 +525,8 @@ export default function BecomeATutorPage() {
             Transcript (PDF, JPG, PNG or WebP, max 5 MB)
           </label>
           <p className="text-xs text-ink">
-            Your transcript must clearly show your <strong>GPA</strong> and
-            your <strong>university student ID</strong>. Applications without both
-            can't be approved.
+            Your transcript must clearly show your <strong>GPA</strong>.
+            Applications without it can&apos;t be approved.
           </p>
           <div className="flex items-center gap-3">
             <label

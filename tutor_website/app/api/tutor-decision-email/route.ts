@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { buildDecisionEmail, type Decision } from "@/lib/decision-email";
+import { sendEmail } from "@/lib/send-email";
 
 // Sends the "approved" / "not approved" / "removed" email to a tutor.
 // Only admins can call it, and the decision is read from the database, not
@@ -9,9 +10,6 @@ import { buildDecisionEmail, type Decision } from "@/lib/decision-email";
 export async function POST(request: Request) {
   const fail = (reason: string, status = 200) =>
     NextResponse.json({ sent: false, reason }, { status });
-
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return fail("Email sending isn't set up yet.");
 
   const supabase = await createClient();
   const {
@@ -67,34 +65,8 @@ export async function POST(request: Request) {
         : undefined,
   });
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: process.env.EMAIL_FROM ?? "Passalong <noreply@passalonglb.com>",
-        to: [email],
-        reply_to: "passalonglb@gmail.com",
-        subject: message.subject,
-        html: message.html,
-        text: message.text,
-      }),
-    });
-    if (!res.ok) {
-      console.error("Resend error", res.status, await res.text());
-      return fail(
-        res.status === 429
-          ? "The daily email limit was reached."
-          : "The email service refused the message."
-      );
-    }
-  } catch (err) {
-    console.error("Resend request failed", err);
-    return fail("The email service couldn't be reached.");
-  }
+  const result = await sendEmail({ to: email, ...message });
+  if (!result.sent) return fail(result.reason);
 
   return NextResponse.json({ sent: true, decision });
 }
