@@ -7,6 +7,7 @@ import { normalizePhone } from "@/lib/phone";
 import { dbErrorMessage } from "@/lib/errors";
 import { sessionModes, type SessionMode } from "@/lib/session-modes";
 import { PHOTO_RULE, buildUploadPath, validateUpload } from "@/lib/uploads";
+import { HelpOptions } from "@/components/help-options";
 
 type EditListingFormProps = {
   tutorId: string;
@@ -17,6 +18,8 @@ type EditListingFormProps = {
     bio: string;
     phone: string;
     sessionMode: SessionMode;
+    canDoProjects: boolean;
+    canDoThesis: boolean;
     photoUrl: string | null;
   };
 };
@@ -31,6 +34,8 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
   const [sessionMode, setSessionMode] = useState<SessionMode>(
     initial.sessionMode
   );
+  const [canDoProjects, setCanDoProjects] = useState(initial.canDoProjects);
+  const [canDoThesis, setCanDoThesis] = useState(initial.canDoThesis);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     initial.photoUrl
@@ -112,6 +117,21 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
       setError(dbErrorMessage(saveError));
       setSaving(false);
       return;
+    }
+
+    if (
+      canDoProjects !== initial.canDoProjects ||
+      canDoThesis !== initial.canDoThesis
+    ) {
+      const { error: helpError } = await supabase
+        .from("tutors")
+        .update({ can_do_projects: canDoProjects, can_do_thesis: canDoThesis })
+        .eq("id", tutorId);
+      if (helpError) {
+        setError(dbErrorMessage(helpError));
+        setSaving(false);
+        return;
+      }
     }
 
     // The save returns the previous photo, which can now be deleted.
@@ -197,6 +217,13 @@ export function EditListingForm({ tutorId, initial }: EditListingFormProps) {
             ))}
           </select>
         </div>
+
+        <HelpOptions
+          projects={canDoProjects}
+          thesis={canDoThesis}
+          onProjectsChange={setCanDoProjects}
+          onThesisChange={setCanDoThesis}
+        />
 
         <div className="flex flex-col gap-1">
           <label htmlFor="edit-bio" className="text-sm text-slate">

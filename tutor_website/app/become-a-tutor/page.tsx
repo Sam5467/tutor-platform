@@ -13,6 +13,7 @@ import { ReviewsSection } from "@/components/reviews-section";
 import { normalizePhone } from "@/lib/phone";
 import { dbErrorMessage } from "@/lib/errors";
 import { FollowInstagram } from "@/components/instagram";
+import { HelpOptions } from "@/components/help-options";
 import {
   PHOTO_RULE,
   TRANSCRIPT_RULE,
@@ -31,6 +32,8 @@ export default function BecomeATutorPage() {
   const [courses, setCourses] = useState("");
   const [price, setPrice] = useState("");
   const [bio, setBio] = useState("");
+  const [canDoProjects, setCanDoProjects] = useState(false);
+  const [canDoThesis, setCanDoThesis] = useState(false);
   const [phone, setPhone] = useState("");
   const [gpa, setGpa] = useState("");
   const [transcriptFile, setTranscriptFile] = useState<File | null>(null);
@@ -232,7 +235,7 @@ export default function BecomeATutorPage() {
 
     // One checked step on the server saves the public listing and the
     // private details (phone, GPA, transcript) together.
-    const { error: insertError } = await supabase.rpc(
+    const { data: newTutorId, error: insertError } = await supabase.rpc(
       "submit_tutor_application",
       {
         p_university: finalUniversity,
@@ -259,6 +262,15 @@ export default function BecomeATutorPage() {
         })
       );
       return;
+    }
+
+    // Projects / thesis are saved on the new listing right after (best effort).
+    if ((canDoProjects || canDoThesis) && newTutorId) {
+      const { error: helpError } = await supabase
+        .from("tutors")
+        .update({ can_do_projects: canDoProjects, can_do_thesis: canDoThesis })
+        .eq("id", newTutorId);
+      if (helpError) console.error("Projects/thesis save error:", helpError);
     }
 
     setSubmitted(true);
@@ -481,6 +493,13 @@ export default function BecomeATutorPage() {
             ))}
           </select>
         </div>
+
+        <HelpOptions
+          projects={canDoProjects}
+          thesis={canDoThesis}
+          onProjectsChange={setCanDoProjects}
+          onThesisChange={setCanDoThesis}
+        />
 
         <div className="flex flex-col gap-1">
           <label className="text-sm text-slate">Bio</label>

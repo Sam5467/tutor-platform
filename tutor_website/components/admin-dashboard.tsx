@@ -24,6 +24,8 @@ type TutorRow = {
   price: number | string;
   bio: string | null;
   session_mode: SessionMode;
+  can_do_projects: boolean;
+  can_do_thesis: boolean;
   status: Status;
   paid_until: string | null;
   created_at: string;
@@ -175,7 +177,7 @@ export function AdminDashboard() {
       const { data, error: fetchError } = await supabase
         .from("tutors")
         .select(
-          "id, full_name, university, faculty, major, year, courses, price, bio, session_mode, status, paid_until, created_at, profile_picture_path, tutor_private(gpa, phone, transcript_path)"
+          "id, full_name, university, faculty, major, year, courses, price, bio, session_mode, can_do_projects, can_do_thesis, status, paid_until, created_at, profile_picture_path, tutor_private(gpa, phone, transcript_path)"
         )
         .order("created_at", { ascending: false });
 
@@ -199,6 +201,8 @@ export function AdminDashboard() {
               price: t.price,
               bio: t.bio,
               session_mode: t.session_mode,
+              can_do_projects: !!t.can_do_projects,
+              can_do_thesis: !!t.can_do_thesis,
               status: t.status,
               paid_until: t.paid_until,
               created_at: t.created_at,
@@ -717,9 +721,21 @@ export function AdminDashboard() {
                           {openId === tutor.id ? "Hide details" : "Details"}
                         </button>
                       </div>
-                      <span className="text-slate">
-                        {tutor.university} · {tutor.major}
-                      </span>
+                      <div className="flex flex-col items-start">
+                        <span className="text-slate">
+                          {tutor.university} · {tutor.major}
+                        </span>
+                        {(tutor.can_do_projects || tutor.can_do_thesis) && (
+                          <span className="text-xs text-brass">
+                            {[
+                              tutor.can_do_projects && "Projects",
+                              tutor.can_do_thesis && "Thesis",
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-col items-start">
                         <span className="text-slate">
                           {tutor.gpa !== null
@@ -859,6 +875,19 @@ export function AdminDashboard() {
                           <dt className="text-xs text-slate">Bio</dt>
                           <dd className="text-ink whitespace-pre-line">
                             {tutor.bio || "None"}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-slate">
+                            Projects / Thesis
+                          </dt>
+                          <dd className="text-ink">
+                            {[
+                              tutor.can_do_projects && "Projects",
+                              tutor.can_do_thesis && "Thesis",
+                            ]
+                              .filter(Boolean)
+                              .join(" · ") || "No"}
                           </dd>
                         </div>
                         <div>

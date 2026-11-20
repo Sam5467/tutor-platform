@@ -7,6 +7,7 @@ import { normalizePhone } from "@/lib/phone";
 import { universities } from "@/lib/universities";
 import { fields } from "@/lib/fields";
 import { sessionModes, type SessionMode } from "@/lib/session-modes";
+import { HelpOptions } from "@/components/help-options";
 
 export type EditableTutor = {
   id: string;
@@ -19,6 +20,8 @@ export type EditableTutor = {
   price: number | string;
   bio: string | null;
   session_mode: SessionMode;
+  can_do_projects: boolean;
+  can_do_thesis: boolean;
   phone: string | null;
   gpa: number | null;
 };
@@ -42,6 +45,8 @@ export function AdminEditTutor({ tutor, onSaved, onCancel }: AdminEditTutorProps
   const [price, setPrice] = useState(String(Number(tutor.price)));
   const [bio, setBio] = useState(tutor.bio ?? "");
   const [sessionMode, setSessionMode] = useState<SessionMode>(tutor.session_mode);
+  const [canDoProjects, setCanDoProjects] = useState(tutor.can_do_projects);
+  const [canDoThesis, setCanDoThesis] = useState(tutor.can_do_thesis);
   const [phone, setPhone] = useState(tutor.phone ?? "");
   const [gpa, setGpa] = useState(tutor.gpa !== null ? String(tutor.gpa) : "");
   const [error, setError] = useState("");
@@ -82,10 +87,19 @@ export function AdminEditTutor({ tutor, onSaved, onCancel }: AdminEditTutorProps
       p_phone: cleanedPhone,
       p_gpa: Number(gpa),
     });
-    setSaving(false);
-
     if (saveError) {
+      setSaving(false);
       setError(dbErrorMessage(saveError));
+      return;
+    }
+
+    const { error: helpError } = await supabase
+      .from("tutors")
+      .update({ can_do_projects: canDoProjects, can_do_thesis: canDoThesis })
+      .eq("id", tutor.id);
+    setSaving(false);
+    if (helpError) {
+      setError(dbErrorMessage(helpError));
       return;
     }
 
@@ -100,6 +114,8 @@ export function AdminEditTutor({ tutor, onSaved, onCancel }: AdminEditTutorProps
       price: Number(price),
       bio,
       session_mode: sessionMode,
+      can_do_projects: canDoProjects,
+      can_do_thesis: canDoThesis,
       phone: cleanedPhone,
       gpa: Number(gpa),
     });
@@ -170,6 +186,14 @@ export function AdminEditTutor({ tutor, onSaved, onCancel }: AdminEditTutorProps
         <span className="text-xs text-slate">GPA (0 to 4)</span>
         <input required type="number" min={0} max={4} step="0.01" value={gpa} onChange={(e) => setGpa(e.target.value)} className={inputClass} />
       </label>
+      <div className="sm:col-span-2">
+        <HelpOptions
+          projects={canDoProjects}
+          thesis={canDoThesis}
+          onProjectsChange={setCanDoProjects}
+          onThesisChange={setCanDoThesis}
+        />
+      </div>
       <label className="flex flex-col gap-1 sm:col-span-2">
         <span className="text-xs text-slate">Courses (comma-separated)</span>
         <textarea required maxLength={300} rows={2} value={courses} onChange={(e) => setCourses(e.target.value)} className={inputClass} />
