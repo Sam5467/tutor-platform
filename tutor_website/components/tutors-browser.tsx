@@ -134,10 +134,13 @@ export function TutorsBrowser() {
   // null while a picker is shown.
   let shownTutors: Tutor[] | null = null;
   if (tutors && searching) {
-    // A search covers the chosen major, or every tutor when none is chosen.
+    // A search stays inside the chosen major or field; with neither chosen,
+    // it covers every tutor.
     const pool = major
       ? tutors.filter((t) => t.faculty === field && t.major === major)
-      : tutors;
+      : field
+        ? tutors.filter((t) => t.faculty === field)
+        : tutors;
     shownTutors = pool.filter((t) => tutorMatchesCourse(t.courses, query));
   } else if (tutors && showsGrid) {
     shownTutors = tutors.filter(
@@ -186,7 +189,9 @@ export function TutorsBrowser() {
     view = (
       <TutorGrid
         tutors={shownTutors}
-        heading={`Results for "${query.trim()}"`}
+        heading={`Results for "${query.trim()}"${
+          major ? ` in ${major}` : field ? ` in ${field}` : ""
+        }`}
         notifyCourse={query.trim()}
         notifyField={field}
         onBack={() => setQuery("")}
@@ -237,7 +242,11 @@ export function TutorsBrowser() {
           />
           <input
             type="search"
-            placeholder="Search a course (e.g. Calculus 2, MATH 202)"
+            placeholder={
+              field
+                ? `Search a course in ${field}`
+                : "Search a course (e.g. Calculus 2, MATH 202)"
+            }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full border border-stone rounded-full py-3 pl-10 pr-4 text-base text-ink bg-paper"
