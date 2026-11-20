@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
   const { data: settings } = await supabase
     .from("site_settings")
-    .select("students_open")
+    .select("students_open, free_until")
     .maybeSingle();
 
   const message = buildDecisionEmail({
@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     firstName: (tutor.full_name ?? "").split(" ")[0],
     tutorId,
     studentsOpen: !!settings?.students_open,
+    freeUntil: settings?.free_until ?? null,
     paidUntil: tutor.paid_until,
     reason:
       decision !== "approved" && typeof body?.reason === "string"

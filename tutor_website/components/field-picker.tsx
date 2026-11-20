@@ -4,9 +4,22 @@ import { GraduationCap } from "lucide-react";
 
 type FieldPickerProps = {
   onSelect: (field: string) => void;
+  // Only show these fields (the ones that have tutors). All when not given.
+  available?: Set<string>;
+  // Whether picking a major comes next.
+  twoSteps?: boolean;
 };
 
-export function FieldPicker({ onSelect }: FieldPickerProps) {
+export function FieldPicker({
+  onSelect,
+  available,
+  twoSteps = true,
+}: FieldPickerProps) {
+  const shown =
+    available && available.size > 0
+      ? fields.filter((f) => available.has(f.name))
+      : fields;
+
   return (
     <div>
       <div className="relative max-w-5xl mx-auto py-10 sm:py-16 px-4">
@@ -22,12 +35,14 @@ export function FieldPicker({ onSelect }: FieldPickerProps) {
         />
 
         <div className="max-w-xl mx-auto">
-          <p className="text-slate text-sm text-center mb-2">Step 1 of 2</p>
+          {twoSteps && (
+            <p className="text-slate text-sm text-center mb-2">Step 1 of 2</p>
+          )}
           <h1 className="font-display text-2xl text-ink text-center mb-8">
             Which field is your course in?
           </h1>
           <div className="flex flex-col gap-3">
-            {fields.map((field) => (
+            {shown.map((field) => (
               <button
                 key={field.name}
                 onClick={() => onSelect(field.name)}

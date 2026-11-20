@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { FieldPicker } from "@/components/field-picker";
 import { MajorPicker } from "@/components/major-picker";
 import { TutorGrid } from "@/components/tutor-grid";
-import { TutorGridSkeleton } from "@/components/skeleton";
+import { PickerSkeleton, TutorGridSkeleton } from "@/components/skeleton";
 import { createClient } from "@/lib/supabase/client";
 import { dbErrorMessage } from "@/lib/errors";
 import { tutorMatchesCourse } from "@/lib/course-search";
@@ -21,13 +21,18 @@ import {
   type TutorRow,
 } from "@/lib/tutors";
 
+// While there are few tutors, students pick a field and see every tutor in it
+// (all engineering together, etc.). Set to true to bring back the second step,
+// picking a major.
+const BROWSE_BY_MAJOR = false;
+
 export function TutorsBrowser() {
   // Where the student is (field, major, filters, search) lives in the page
   // address, so going back from a tutor's profile returns to the same spot.
   const params = useSearchParams();
   const fieldParam = params.get("field");
   const field = fields.some((f) => f.name === fieldParam) ? fieldParam : null;
-  const major = field ? params.get("major") : null;
+  const major = field && BROWSE_BY_MAJOR ? params.get("major") : null;
   const university = params.get("university") ?? "all";
   const mode = (params.get("mode") ?? "any") as SessionMode | "any";
   const [query, setQueryState] = useState(params.get("q") ?? "");
@@ -120,8 +125,10 @@ export function TutorsBrowser() {
 
   const searching = query.trim().length > 0;
 
-  // Picking a field or major needs no data; only the tutor lists wait.
-  const needsTutors = searching || (field && major);
+  // Picking a major needs no data; the field list waits for the tutors so
+  // empty fields can be hidden, and the tutor lists wait too.
+  const showsGrid = !!field && (!BROWSE_BY_MAJOR || !!major);
+  const needsTutors = searching || showsGrid || !BROWSE_BY_MAJOR;
 
   // The tutors shown right now (before the university / mode filters), or
   // null while a picker is shown.
@@ -132,8 +139,10 @@ export function TutorsBrowser() {
       ? tutors.filter((t) => t.faculty === field && t.major === major)
       : tutors;
     shownTutors = pool.filter((t) => tutorMatchesCourse(t.courses, query));
-  } else if (tutors && field && major) {
-    shownTutors = tutors.filter((t) => t.faculty === field && t.major === major);
+  } else if (tutors && showsGrid) {
+    shownTutors = tutors.filter(
+      (t) => t.faculty === field && (!BROWSE_BY_MAJOR || t.major === major)
+    );
   }
   const resultCount =
     shownTutors?.filter(
@@ -172,7 +181,7 @@ export function TutorsBrowser() {
 
   let view: React.ReactNode;
   if (needsTutors && tutors === null) {
-    view = <TutorGridSkeleton />;
+    view = !searching && !field ? <PickerSkeleton /> : <TutorGridSkeleton />;
   } else if (shownTutors && searching) {
     view = (
       <TutorGrid
@@ -184,8 +193,16 @@ export function TutorsBrowser() {
       />
     );
   } else if (!field) {
-    view = <FieldPicker onSelect={setField} />;
-  } else if (!major) {
+    view = (
+      <FieldPicker
+        onSelect={setField}
+        available={
+          tutors ? new Set(tutors.map((t) => t.faculty)) : undefined
+        }
+        twoSteps={BROWSE_BY_MAJOR}
+      />
+    );
+  } else if (BROWSE_BY_MAJOR && !major) {
     view = (
       <MajorPicker
         field={field}
@@ -197,9 +214,9 @@ export function TutorsBrowser() {
     view = (
       <TutorGrid
         tutors={shownTutors ?? []}
-        heading={major}
-        onBack={() => setMajor(null)}
-        backLabel="Back to majors"
+        heading={BROWSE_BY_MAJOR && major ? major : field}
+        onBack={() => (BROWSE_BY_MAJOR ? setMajor(null) : setField(null))}
+        backLabel={BROWSE_BY_MAJOR ? "Back to majors" : "Back to fields"}
         {...filterProps}
       />
     );

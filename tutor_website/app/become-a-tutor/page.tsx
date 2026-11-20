@@ -50,6 +50,7 @@ export default function BecomeATutorPage() {
   const [siteState, setSiteState] = useState<SiteState>({
     studentsOpen: false,
     studentsOpenedAt: null,
+    freeUntil: null,
   });
 
   useEffect(() => {
@@ -59,11 +60,12 @@ export default function BecomeATutorPage() {
       // Decides what we tell the tutor about the free period and the fee.
       const { data: settings } = await supabase
         .from("site_settings")
-        .select("students_open, students_opened_at")
+        .select("students_open, students_opened_at, free_until")
         .maybeSingle();
       setSiteState({
         studentsOpen: !!settings?.students_open,
         studentsOpenedAt: settings?.students_opened_at ?? null,
+        freeUntil: settings?.free_until ?? null,
       });
       const {
         data: { user },

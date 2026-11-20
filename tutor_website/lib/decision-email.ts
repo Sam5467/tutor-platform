@@ -11,6 +11,8 @@ type EmailInput = {
   firstName: string;
   tutorId: string;
   studentsOpen: boolean;
+  // The date the free period ends, if the admin chose one.
+  freeUntil?: string | null;
   paidUntil: string | null;
   // Typed by the admin when rejecting.
   reason?: string;
@@ -33,9 +35,15 @@ function escapeHtml(text: string) {
 }
 
 // What an approved tutor needs to know about the free period and the fee.
-function approvedLines({ studentsOpen, paidUntil }: EmailInput): string[] {
+function approvedLines({ studentsOpen, paidUntil, freeUntil }: EmailInput): string[] {
   const fee = `After that, your listing costs $${MONTHLY_FEE} per month to stay visible to students. You pay us directly, not through the website, and we'll contact you before it's due.`;
 
+  if (!studentsOpen && freeUntil && new Date(freeUntil) > new Date()) {
+    return [
+      `Passalong opens to students very soon. Your listing is free until ${formatDate(freeUntil)}.`,
+      fee,
+    ];
+  }
   if (!studentsOpen) {
     return [
       "Passalong isn't open to students yet. Your free month does not start now: it starts on the day we open the site to students, and lasts 30 days.",

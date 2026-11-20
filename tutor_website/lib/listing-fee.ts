@@ -1,6 +1,6 @@
 // What a tutor is told about the free period and the monthly fee. It follows
-// the admin switch: before opening, during the shared 30-day free period
-// (which ends 30 days after the site opened to students), and after it.
+// the admin switch: before opening, during the shared free period (which ends
+// on the date the admin chose, or 30 days after opening if none), and after.
 
 export const MONTHLY_FEE = 10;
 const FREE_DAYS = 30;
@@ -8,13 +8,24 @@ const FREE_DAYS = 30;
 export type SiteState = {
   studentsOpen: boolean;
   studentsOpenedAt: string | null;
+  // The date the admin chose for the free period to end, if any.
+  freeUntil: string | null;
 };
 
 export function freePeriodEnd(state: SiteState): Date | null {
+  if (state.freeUntil) return new Date(state.freeUntil);
   if (!state.studentsOpen || !state.studentsOpenedAt) return null;
   const end = new Date(state.studentsOpenedAt);
   end.setDate(end.getDate() + FREE_DAYS);
   return end;
+}
+
+export function formatFreeDate(date: Date): string {
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 export function listingFeeMessage(state: SiteState): {
@@ -22,6 +33,19 @@ export function listingFeeMessage(state: SiteState): {
   lines: string[];
 } {
   const payment = `When the free period ends, your listing costs $${MONTHLY_FEE} per month to stay visible to students. You pay us directly, not through the website, and we'll contact you before it's due.`;
+
+  const end = freePeriodEnd(state);
+
+  if (!state.studentsOpen && end && end > new Date()) {
+    const date = formatFreeDate(end);
+    return {
+      title: `Free until ${date}`,
+      lines: [
+        `Passalong opens to students very soon. Your listing is free until ${date}.`,
+        payment,
+      ],
+    };
+  }
 
   if (!state.studentsOpen) {
     return {
@@ -34,13 +58,8 @@ export function listingFeeMessage(state: SiteState): {
     };
   }
 
-  const end = freePeriodEnd(state);
   if (end && end > new Date()) {
-    const date = end.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    const date = formatFreeDate(end);
     return {
       title: `Free until ${date}`,
       lines: [

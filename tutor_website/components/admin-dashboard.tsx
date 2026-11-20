@@ -91,6 +91,9 @@ export function AdminDashboard() {
     student_accounts: number;
   } | null>(null);
   const [studentsOpen, setStudentsOpen] = useState(false);
+  // The free period's end date, as "YYYY-MM-DD" for the date box.
+  const [freeUntil, setFreeUntil] = useState("");
+  const [savedFreeUntil, setSavedFreeUntil] = useState("");
   const [switching, setSwitching] = useState(false);
   const [notice, setNotice] = useState("");
   // Result of the email sent to a tutor after Approve / Reject / Unlist.
@@ -106,9 +109,16 @@ export function AdminDashboard() {
 
       const { data: settings } = await supabase
         .from("site_settings")
-        .select("students_open")
+        .select("students_open, free_until")
         .maybeSingle();
       setStudentsOpen(!!settings?.students_open);
+      const day = settings?.free_until
+        ? new Date(settings.free_until).toLocaleDateString("en-CA", {
+            timeZone: "Asia/Beirut",
+          })
+        : "";
+      setFreeUntil(day);
+      setSavedFreeUntil(day);
 
       // Searches, profile views, how people heard about us, and the funnel.
       const { data: insightData, error: insightError } = await supabase.rpc(
@@ -410,9 +420,56 @@ export function AdminDashboard() {
     );
   };
 
+  const freeUntilLabel = (day: string) =>
+    new Date(`${day}T12:00:00`).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+  // Saves the date the shared free period ends (end of that day in Beirut).
+  const saveFreeUntil = async () => {
+    if (!freeUntil) return;
+    if (
+      !window.confirm(
+        `Make every tutor's listing free until ${freeUntilLabel(freeUntil)}?${
+          studentsOpen
+            ? "\n\nTutors who are on the free period now move to this date."
+            : ""
+        }`
+      )
+    ) {
+      return;
+    }
+    setError("");
+    setNotice("");
+    const supabase = createClient();
+    const { data: moved, error: saveError } = await supabase.rpc(
+      "set_free_until",
+      { p_date: `${freeUntil}T23:59:59+02:00` }
+    );
+    if (saveError) {
+      setError(dbErrorMessage(saveError));
+      return;
+    }
+    setSavedFreeUntil(freeUntil);
+    setNotice(
+      studentsOpen
+        ? `Free until ${freeUntilLabel(freeUntil)}. ${moved ?? 0} tutor${
+            moved === 1 ? "" : "s"
+          } moved to the new date.`
+        : `Free until ${freeUntilLabel(freeUntil)}. It applies to every tutor when you open the site.`
+    );
+    if (studentsOpen) window.location.reload();
+  };
+
   const switchStudentsOpen = async (open: boolean) => {
     const question = open
-      ? "Open the site to students?\n\nStudents will be able to search for tutors. All tutors share one free period that ends 30 days from today, including tutors you approve later."
+      ? `Open the site to students?\n\nStudents will be able to search for tutors. All tutors share one free period that ends ${
+          savedFreeUntil
+            ? `on ${freeUntilLabel(savedFreeUntil)}`
+            : "30 days from today"
+        }, including tutors you approve later.`
       : "Close the site to students again?\n\nTutors will be hidden from search until you reopen it. Their listing dates don't change.";
     if (!window.confirm(question)) return;
 
@@ -496,21 +553,43 @@ export function AdminDashboard() {
           <p className="text-sm text-slate">
             {studentsOpen
               ? "Students can search for tutors. Only tutors whose listing is active are shown."
-              : "Students can't search yet. Opening the site starts one shared free period of 30 days for all tutors."}
+              : savedFreeUntil
+                ? `Students can't search yet. Opening the site makes every tutor's listing free until ${freeUntilLabel(savedFreeUntil)}.`
+                : "Students can't search yet. Opening the site starts one shared free period of 30 days for all tutors, unless you choose an end date."}
           </p>
         </div>
-        <button
-          type="button"
-          disabled={switching}
-          onClick={() => switchStudentsOpen(!studentsOpen)}
-          className={`rounded-full px-6 py-2 text-sm font-medium shrink-0 disabled:opacity-60 ${
-            studentsOpen
-              ? "border border-stone text-slate"
-              : "bg-ink text-paper"
-          }`}
-        >
-          {studentsOpen ? "Close to students" : "Open to students"}
-        </button>
+        <div className="flex flex-col sm:items-end gap-3 shrink-0">
+          <label className="flex items-center gap-2 text-sm text-slate">
+            Free until
+            <input
+              type="date"
+              value={freeUntil}
+              onChange={(e) => setFreeUntil(e.target.value)}
+              className="border border-stone rounded-lg py-1.5 px-2 text-ink"
+            />
+            {freeUntil && freeUntil !== savedFreeUntil && (
+              <button
+                type="button"
+                onClick={saveFreeUntil}
+                className="rounded-full bg-brass text-paper px-3 py-1.5 text-xs"
+              >
+                Save
+              </button>
+            )}
+          </label>
+          <button
+            type="button"
+            disabled={switching}
+            onClick={() => switchStudentsOpen(!studentsOpen)}
+            className={`rounded-full px-6 py-2 text-sm font-medium disabled:opacity-60 ${
+              studentsOpen
+                ? "border border-stone text-slate"
+                : "bg-ink text-paper"
+            }`}
+          >
+            {studentsOpen ? "Close to students" : "Open to students"}
+          </button>
+        </div>
       </div>
 
       <InsightsPanel insights={insights} />
