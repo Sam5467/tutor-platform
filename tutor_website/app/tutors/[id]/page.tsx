@@ -9,6 +9,7 @@ import { getStudentsOpen } from "@/lib/site-settings";
 import { TEST_MODE } from "@/lib/test-mode";
 import { universityLabel } from "@/lib/universities";
 import { TrackProfileView } from "@/components/track-profile-view";
+import { ReviewLinkBox } from "@/components/review-link-box";
 import { demoTutors } from "@/lib/demo-tutors";
 import type { Tutor } from "@/lib/tutors";
 import { sessionModeLabel } from "@/lib/session-modes";
@@ -125,6 +126,11 @@ function TutorProfile({
               <p className="text-slate text-sm">
                 {universityLabel(tutor.university)} · {sessionModeLabel(tutor.sessionMode)}
               </p>
+              {tutor.status === "approved" && (
+                <p className="text-xs text-brass font-medium mt-1">
+                  ✓ Transcript checked by Passalong
+                </p>
+              )}
             </div>
           </div>
 
@@ -165,6 +171,10 @@ function TutorProfile({
             </div>
           ) : (
             <ContactButton tutorId={tutor.id} demo={demo} />
+          )}
+
+          {isOwnProfile && tutor.status === "approved" && (
+            <ReviewLinkBox tutorId={tutor.id} />
           )}
         </div>
       </div>

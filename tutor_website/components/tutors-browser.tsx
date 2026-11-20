@@ -187,6 +187,8 @@ export function TutorsBrowser() {
       <TutorGrid
         tutors={shownTutors}
         heading={`Results for "${query.trim()}"`}
+        notifyCourse={query.trim()}
+        notifyField={field}
         onBack={() => setQuery("")}
         backLabel="Clear search"
         {...filterProps}
@@ -217,6 +219,8 @@ export function TutorsBrowser() {
         heading={BROWSE_BY_MAJOR && major ? major : field}
         onBack={() => (BROWSE_BY_MAJOR ? setMajor(null) : setField(null))}
         backLabel={BROWSE_BY_MAJOR ? "Back to majors" : "Back to fields"}
+        notifyCourse={BROWSE_BY_MAJOR && major ? major : ""}
+        notifyField={field}
         {...filterProps}
       />
     );

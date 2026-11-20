@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TutorCard } from "@/components/tutor-card";
+import { NotifyMeForm } from "@/components/notify-me-form";
 import { universities } from "@/lib/universities";
 import { modeMatches, type SessionMode } from "@/lib/session-modes";
 import type { Tutor } from "@/lib/tutors";
@@ -15,6 +16,9 @@ type TutorGridProps = {
   mode: SessionMode | "any";
   onUniversityChange: (value: string) => void;
   onModeChange: (value: SessionMode | "any") => void;
+  // When nobody is found: what to prefill in the "notify me" form.
+  notifyCourse?: string;
+  notifyField?: string | null;
 };
 
 const PAGE_SIZE = 12;
@@ -31,6 +35,8 @@ export function TutorGrid({
   mode,
   onUniversityChange,
   onModeChange,
+  notifyCourse = "",
+  notifyField = null,
 }: TutorGridProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
 
@@ -107,9 +113,17 @@ export function TutorGrid({
       </p>
 
       {filtered.length === 0 ? (
-        <p className="text-slate text-center py-12">
-          No tutors found yet. Try another university or a different search.
-        </p>
+        <div className="py-6">
+          <p className="text-slate text-center mb-6">
+            No tutors found yet. Try another university or a different search.
+          </p>
+          <NotifyMeForm
+            key={`${notifyCourse}-${notifyField}-${university}`}
+            course={notifyCourse}
+            field={notifyField}
+            university={university === "all" ? null : university}
+          />
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">

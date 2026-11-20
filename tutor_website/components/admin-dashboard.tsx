@@ -42,6 +42,17 @@ type ContactRow = {
   contacted_at: string;
 };
 
+type TutorRequest = {
+  id: number;
+  created_at: string;
+  course: string;
+  field: string | null;
+  university: string | null;
+  name: string | null;
+  phone: string;
+  done_at: string | null;
+};
+
 type Unfinished = {
   student_id: string;
   full_name: string | null;
@@ -87,6 +98,7 @@ export function AdminDashboard() {
   const [contactsThisWeek, setContactsThisWeek] = useState(0);
   const [insights, setInsights] = useState<Insights | null>(null);
   const [unfinished, setUnfinished] = useState<Unfinished[] | null>(null);
+  const [requests, setRequests] = useState<TutorRequest[] | null>(null);
   const [signups, setSignups] = useState<{
     total_accounts: number;
     accounts_last_7_days: number;
@@ -130,6 +142,16 @@ export function AdminDashboard() {
         console.error("Insights error:", insightError);
       } else {
         setInsights(insightData as Insights);
+      }
+
+      // Students who asked to be told when a tutor for their course joins.
+      const { data: requestData, error: requestError } = await supabase.rpc(
+        "admin_tutor_requests"
+      );
+      if (requestError) {
+        console.error("Tutor requests error:", requestError);
+      } else {
+        setRequests(requestData ?? []);
       }
 
       // Signed up to become a tutor but never applied.
@@ -595,6 +617,8 @@ export function AdminDashboard() {
           </button>
         </div>
       </div>
+
+      <RequestsPanel rows={requests} onChange={setRequests} />
 
       <InsightsPanel insights={insights} />
 
@@ -1227,6 +1251,134 @@ That's the first ${batch.length} of ${notYetReminded.length}, to stay under the 
             </li>
           ))}
         </ul>
+      )}
+    </div>
+  );
+}
+
+// Students who found no tutor and left their WhatsApp number. Message them
+// when a tutor for their course joins, then mark the request as done.
+function RequestsPanel({
+  rows,
+  onChange,
+}: {
+  rows: TutorRequest[] | null;
+  onChange: (rows: TutorRequest[]) => void;
+}) {
+  const [showDone, setShowDone] = useState(false);
+  const [error, setError] = useState("");
+
+  if (rows === null) {
+    return (
+      <div className="border border-stone rounded-lg p-5 mb-10">
+        <h2 className="font-display text-lg text-ink">
+          Students waiting for a tutor
+        </h2>
+        <p className="text-sm text-red-600">We couldn&apos;t load this list.</p>
+      </div>
+    );
+  }
+
+  const open = rows.filter((r) => !r.done_at);
+  const done = rows.filter((r) => r.done_at);
+
+  const setDone = async (request: TutorRequest, isDone: boolean) => {
+    setError("");
+    const { error: saveError } = await createClient().rpc(
+      "admin_set_request_done",
+      { p_id: request.id, p_done: isDone }
+    );
+    if (saveError) {
+      setError(dbErrorMessage(saveError));
+      return;
+    }
+    onChange(
+      rows.map((r) =>
+        r.id === request.id
+          ? { ...r, done_at: isDone ? new Date().toISOString() : null }
+          : r
+      )
+    );
+  };
+
+  const message = (r: TutorRequest) =>
+    encodeURIComponent(
+      `Hi${r.name ? ` ${r.name}` : ""}! You asked Passalong for a tutor for ${r.course}. Good news: we found one for you! Have a look here: https://www.passalonglb.com/tutors`
+    );
+
+  const row = (r: TutorRequest) => (
+    <li
+      key={r.id}
+      className="py-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1"
+    >
+      <div className="min-w-0">
+        <p className="text-ink">
+          <span className="font-medium">{r.course}</span>
+          {r.university && <span className="text-slate"> · {r.university}</span>}
+          {r.field && <span className="text-slate"> · {r.field}</span>}
+        </p>
+        <p className="text-xs text-slate">
+          {r.name || "No name"} · +{r.phone} ·{" "}
+          {new Date(r.created_at).toLocaleDateString(undefined, {
+            day: "numeric",
+            month: "short",
+          })}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 text-xs">
+        {!r.done_at && (
+          <a
+            href={`https://wa.me/${r.phone}?text=${message(r)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-brass text-paper px-3 py-1"
+          >
+            WhatsApp
+          </a>
+        )}
+        <button
+          type="button"
+          onClick={() => setDone(r, !r.done_at)}
+          className="rounded-full border border-stone px-3 py-1 text-slate"
+        >
+          {r.done_at ? "Reopen" : "Mark done"}
+        </button>
+      </div>
+    </li>
+  );
+
+  return (
+    <div className="border border-stone rounded-lg p-5 mb-10">
+      <h2 className="font-display text-lg text-ink">
+        Students waiting for a tutor ({open.length})
+      </h2>
+      <p className="text-sm text-slate mb-4">
+        They searched, found nobody and left their WhatsApp number. Once a tutor
+        for their course joins, message them and mark it done.
+      </p>
+      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {open.length === 0 ? (
+        <p className="text-sm text-slate">Nobody is waiting right now.</p>
+      ) : (
+        <ul className="flex flex-col divide-y divide-stone text-sm">
+          {open.map(row)}
+        </ul>
+      )}
+      {done.length > 0 && (
+        <>
+          <button
+            type="button"
+            onClick={() => setShowDone(!showDone)}
+            className="text-xs text-slate underline mt-3"
+          >
+            {showDone ? "Hide done" : `Show done (${done.length})`}
+          </button>
+          {showDone && (
+            <ul className="flex flex-col divide-y divide-stone text-sm opacity-60 mt-2">
+              {done.map(row)}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );

@@ -84,6 +84,16 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
     load();
   }, [tutorId]);
 
+  // A tutor's review link ends in "#review": once the reviews have loaded,
+  // bring the form into view.
+  const loaded = reviews !== null;
+  useEffect(() => {
+    if (!loaded || window.location.hash !== "#review") return;
+    document
+      .getElementById("review")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [loaded]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -197,6 +207,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
 
       {!hideForm && !alreadyReviewed && (
         <form
+          id="review"
           onSubmit={handleSubmit}
           className="flex flex-col gap-3 border-t border-stone pt-6"
         >
@@ -244,7 +255,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
       )}
 
       {!hideForm && alreadyReviewed && (
-        <p className="text-sm text-slate border-t border-stone pt-6">
+        <p id="review" className="text-sm text-slate border-t border-stone pt-6">
           Thanks for your review of this tutor!
         </p>
       )}

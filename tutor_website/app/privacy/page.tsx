@@ -62,7 +62,10 @@ export default function PrivacyPage() {
         and our bot check (see below) looks at basic browser and connection
         details to tell people from automated programs. We also count, without
         your name, which courses are searched for and how often each tutor&apos;s
-        profile is opened, so we know which tutors students need.
+        profile is opened, so we know which tutors students need. If you ask us
+        to tell you when a tutor for your course joins, we keep the course,
+        your name (if you give it) and your WhatsApp number so we can message
+        you.
       </p>
 
       <h2 className="font-display text-lg text-ink mt-8 mb-3">

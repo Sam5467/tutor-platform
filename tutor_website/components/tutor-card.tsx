@@ -70,6 +70,12 @@ export function TutorCard({
         <span className={`rounded-full px-2 py-0.5 ${chip}`}>
           {sessionModeLabel(sessionMode)}
         </span>
+        <span
+          className={`rounded-full px-2 py-0.5 ${chip}`}
+          title="Transcript and GPA checked by Passalong"
+        >
+          ✓ Verified
+        </span>
         {rating !== null && (
           <span className="opacity-80">
             ★ {rating.toFixed(1)} ({reviewCount})
