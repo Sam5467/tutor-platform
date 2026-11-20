@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   return (
     <div className="max-w-2xl mx-auto py-16 px-4">
       <h1 className="font-display text-2xl text-ink mb-2">Privacy Policy</h1>
-      <p className="text-sm text-slate mb-8">Last updated: 15 November 2026</p>
+      <p className="text-sm text-slate mb-8">Last updated: 20 November 2026</p>
 
       <p className="text-ink mb-4">
         Passalong is an independent, student-run platform that connects
@@ -78,8 +78,9 @@ export default function PrivacyPage() {
           <strong>Your listing</strong> (name, photo, university, field, major,
           year, courses, how you teach, price, bio, reviews and average
           rating) can be seen by anyone visiting the site, with or without an
-          account, while your listing is active. Your phone number is only
-          given to logged-in students who choose to contact you.
+          account, while your listing is active. Your phone number is given to
+          any visitor who presses &quot;Contact on WhatsApp&quot; on your
+          listing, so they can message you.
         </li>
         <li>
           <strong>Reviews</strong> show the reviewer’s name, rating and comment

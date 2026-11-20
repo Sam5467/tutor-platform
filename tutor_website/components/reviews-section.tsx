@@ -11,8 +11,12 @@ type Review = {
   comment: string | null;
   created_at: string;
   student_name: string;
-  student_id: string;
+  student_id: string | null;
 };
+
+// Anyone can leave a review, without an account. This browser remembers which
+// tutors it already reviewed so the form isn't shown twice.
+const reviewedKey = (tutorId: string) => `passalong-reviewed-${tutorId}`;
 
 type ReviewsSectionProps = {
   tutorId: string;
@@ -21,9 +25,8 @@ type ReviewsSectionProps = {
 
 export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProps) {
   const [reviews, setReviews] = useState<Review[] | null>(null);
-  const [hasContacted, setHasContacted] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [name, setName] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [rating, setRating] = useState(0);
@@ -46,28 +49,28 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
       const supabase = createClient();
       await loadReviews();
 
+      try {
+        if (localStorage.getItem(reviewedKey(tutorId)) === "1") {
+          setAlreadyReviewed(true);
+        }
+      } catch {
+        // Storage blocked: the form just stays available.
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) return;
-      setLoggedIn(true);
       setCurrentUserId(user.id);
 
       const { data: me } = await supabase
         .from("students")
-        .select("is_admin")
+        .select("is_admin, full_name")
         .eq("id", user.id)
         .single();
       setIsAdmin(!!me?.is_admin);
-
-      const { data: contactRow } = await supabase
-        .from("contact_requests")
-        .select("id")
-        .eq("student_id", user.id)
-        .eq("tutor_id", tutorId)
-        .maybeSingle();
-      setHasContacted(!!contactRow);
+      if (me?.full_name) setName(me.full_name);
 
       const { data: reviewRow } = await supabase
         .from("reviews")
@@ -89,44 +92,32 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
       setError("Please select a star rating.");
       return;
     }
-
-    setSubmitting(true);
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setSubmitting(false);
+    if (!name.trim()) {
+      setError("Please write your name.");
       return;
     }
 
-    const { data: studentRow } = await supabase
-      .from("students")
-      .select("full_name")
-      .eq("id", user.id)
-      .single();
-
-    const { error: insertError } = await supabase.from("reviews").insert({
-      student_id: user.id,
-      tutor_id: tutorId,
-      rating,
-      comment: comment.trim() ? comment.trim() : null,
-      student_name: studentRow?.full_name ?? "A student",
+    setSubmitting(true);
+    const supabase = createClient();
+    const { error: insertError } = await supabase.rpc("submit_review", {
+      p_tutor_id: tutorId,
+      p_name: name,
+      p_rating: rating,
+      p_comment: comment,
     });
 
     setSubmitting(false);
 
     if (insertError) {
-      setError(
-        dbErrorMessage(insertError, {
-          "23505": "You've already reviewed this tutor.",
-          "42501": "You can review a tutor after you've contacted them.",
-        })
-      );
+      setError(dbErrorMessage(insertError));
       return;
     }
 
+    try {
+      localStorage.setItem(reviewedKey(tutorId), "1");
+    } catch {
+      // Storage blocked: nothing else to do.
+    }
     setAlreadyReviewed(true);
     setRating(0);
     setComment("");
@@ -134,7 +125,7 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
   };
 
   const handleDelete = async (review: Review) => {
-    const ownReview = review.student_id === currentUserId;
+    const ownReview = !!currentUserId && review.student_id === currentUserId;
     const message = ownReview
       ? "Delete your review? You'll be able to write a new one."
       : `Remove ${review.student_name}'s review permanently?`;
@@ -187,7 +178,8 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
               {review.comment && (
                 <p className="text-sm text-slate">{review.comment}</p>
               )}
-              {(isAdmin || review.student_id === currentUserId) && (
+              {(isAdmin ||
+                (!!currentUserId && review.student_id === currentUserId)) && (
                 <button
                   type="button"
                   onClick={() => handleDelete(review)}
@@ -203,12 +195,20 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
         </div>
       )}
 
-      {!hideForm && loggedIn && hasContacted && !alreadyReviewed && (
+      {!hideForm && !alreadyReviewed && (
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-3 border-t border-stone pt-6"
         >
-          <p className="text-sm text-slate">Leave a review</p>
+          <p className="text-sm text-slate">Had a session? Leave a review</p>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            maxLength={60}
+            className="border border-stone rounded-lg py-2 px-4 text-ink text-sm"
+          />
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -243,9 +243,9 @@ export function ReviewsSection({ tutorId, hideForm = false }: ReviewsSectionProp
         </form>
       )}
 
-      {!hideForm && loggedIn && alreadyReviewed && (
+      {!hideForm && alreadyReviewed && (
         <p className="text-sm text-slate border-t border-stone pt-6">
-          Thanks, you've already left a review for this tutor.
+          Thanks for your review of this tutor!
         </p>
       )}
     </div>

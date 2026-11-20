@@ -10,9 +10,20 @@ type ContactButtonProps = {
   demo?: boolean;
 };
 
+// Remembers in this browser which tutors were already contacted, so pressing
+// the button again doesn't count a second contact.
+const contactedKey = (tutorId: string) => `passalong-contacted-${tutorId}`;
+
+export function contactedInThisBrowser(tutorId: string): boolean {
+  try {
+    return localStorage.getItem(contactedKey(tutorId)) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
   const [contacted, setContacted] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
   const [checking, setChecking] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,8 +35,8 @@ export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
         data: { user },
       } = await supabase.auth.getUser();
 
+      if (contactedInThisBrowser(tutorId)) setContacted(true);
       if (user) {
-        setLoggedIn(true);
         const { data } = await supabase
           .from("contact_requests")
           .select("id")
@@ -42,14 +53,6 @@ export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
 
   const handleContact = async () => {
     if (loading || checking) return;
-    // Browsing is open to everyone, but contacting needs an account. Send
-    // them to log in, then straight back to this tutor.
-    if (!loggedIn && !demo) {
-      window.location.assign(
-        `/login?next=${encodeURIComponent(`/tutors/${tutorId}`)}`
-      );
-      return;
-    }
     if (demo) {
       setError("This is a demo tutor, so there's no WhatsApp number to open.");
       return;
@@ -61,12 +64,12 @@ export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
     // browsers don't block it. We point it at WhatsApp once we have the number.
     const tab = window.open("", "_blank");
 
-    // The phone number is only handed out here, to logged-in students. This
-    // also records that they contacted this tutor (needed to leave a review).
+    // The phone number is handed out here, and the contact is counted for
+    // the admin (once per browser).
     const supabase = createClient();
     const { data: phone, error: contactError } = await supabase.rpc(
       "get_tutor_contact",
-      { p_tutor_id: tutorId }
+      { p_tutor_id: tutorId, p_count: !contactedInThisBrowser(tutorId) }
     );
 
     setLoading(false);
@@ -84,6 +87,11 @@ export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
     }
 
     setContacted(true);
+    try {
+      localStorage.setItem(contactedKey(tutorId), "1");
+    } catch {
+      // Storage blocked: the next press is counted again, that's all.
+    }
     const link = `https://wa.me/${phone}`;
     if (tab) {
       tab.opener = null;
@@ -103,11 +111,6 @@ export function ContactButton({ tutorId, demo = false }: ContactButtonProps) {
       >
         {loading ? "Opening WhatsApp..." : "Contact on WhatsApp"}
       </button>
-      {!checking && !loggedIn && !demo && (
-        <p className="text-xs text-slate">
-          You&apos;ll need a free account to contact a tutor.
-        </p>
-      )}
       {error && <p className="text-xs text-red-600">{error}</p>}
       {!checking && contacted && (
         <p className="text-xs text-slate">

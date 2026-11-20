@@ -74,17 +74,9 @@ export function HeaderShell({
         </>
       ) : (
         <>
+          {/* Accounts are only for tutors; students browse without one. */}
           <Link href="/login" onClick={() => setMenuOpen(false)}>
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            onClick={() => setMenuOpen(false)}
-            className={`rounded-full px-4 py-2 ${
-              isLanding ? "bg-ink text-paper" : "bg-brass text-ink"
-            }`}
-          >
-            Sign up
+            Tutor log in
           </Link>
         </>
       )}

@@ -41,7 +41,10 @@ export default function StudentSignupPage() {
   // Where to send them after confirming: only paths on this site.
   const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
-  const returnTo = nextParam && /^\/(?!\/)/.test(nextParam) ? nextParam : "/";
+  // Accounts are only for tutors, so after confirming they go to the
+  // application unless they came from somewhere else.
+  const returnTo =
+    nextParam && /^\/(?!\/)/.test(nextParam) ? nextParam : "/become-a-tutor";
   const applyingAsTutor = returnTo === "/become-a-tutor";
   const loginHref =
     returnTo === "/" ? "/login" : `/login?next=${encodeURIComponent(returnTo)}`;
