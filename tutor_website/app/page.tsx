@@ -10,8 +10,19 @@ export const metadata = {
   alternates: { canonical: "/" },
 };
 
-export default async function Home() {
-  const studentsOpen = await getStudentsOpen();
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ preview?: string }>;
+}) {
+  // On your computer or a Vercel preview only (never the live site):
+  // "/?preview=open" shows the page as it looks once the site is open to
+  // students.
+  const previewOpen =
+    (process.env.NODE_ENV === "development" ||
+      process.env.VERCEL_ENV === "preview") &&
+    (await searchParams).preview === "open";
+  const studentsOpen = (await getStudentsOpen()) || previewOpen;
   const supabase = await createClient();
   const {
     data: { user },
@@ -70,18 +81,24 @@ export default async function Home() {
             </Link>
           </div>
         ) : studentsOpen ? (
-          <div className="flex gap-4 justify-center text-paper">
+          <div className="flex flex-wrap gap-3 sm:gap-4 justify-center text-paper px-4">
             <Link
               href="/tutors"
-              className="rounded-full bg-brass text-ink px-10 py-4 text-base font-medium"
+              className="rounded-full bg-brass text-ink px-8 sm:px-10 py-4 text-base font-medium"
             >
               Find a tutor
             </Link>
             <Link
               href="/become-a-tutor"
-              className="rounded-full border border-brass text-paper px-10 py-4 text-base font-medium"
+              className="rounded-full border border-brass text-paper px-8 sm:px-10 py-4 text-base font-medium"
             >
               Become a tutor
+            </Link>
+            <Link
+              href="/project-help"
+              className="rounded-full border border-brass text-paper px-8 sm:px-10 py-4 text-base font-medium"
+            >
+              Project / Thesis help
             </Link>
           </div>
         ) : (

@@ -99,6 +99,10 @@ export function AdminDashboard() {
   const [insights, setInsights] = useState<Insights | null>(null);
   const [unfinished, setUnfinished] = useState<Unfinished[] | null>(null);
   const [requests, setRequests] = useState<TutorRequest[] | null>(null);
+  const [helpClicks, setHelpClicks] = useState<{
+    total: number;
+    last_7_days: number;
+  } | null>(null);
   const [signups, setSignups] = useState<{
     total_accounts: number;
     accounts_last_7_days: number;
@@ -142,6 +146,22 @@ export function AdminDashboard() {
         console.error("Insights error:", insightError);
       } else {
         setInsights(insightData as Insights);
+      }
+
+      // Presses of "Message us on WhatsApp" on the Project / Thesis page.
+      const { data: helpData, error: helpError } = await supabase.rpc(
+        "admin_help_clicks"
+      );
+      if (helpError) {
+        console.error("Help clicks error:", helpError);
+      } else {
+        const row = Array.isArray(helpData) ? helpData[0] : helpData;
+        if (row) {
+          setHelpClicks({
+            total: Number(row.total),
+            last_7_days: Number(row.last_7_days),
+          });
+        }
       }
 
       // Students who asked to be told when a tutor for their course joins.
@@ -637,6 +657,15 @@ export function AdminDashboard() {
             We couldn&apos;t load the sign-ups.
           </p>
         )}
+
+        <h2 className="font-display text-lg text-ink">
+          Project / Thesis requests
+        </h2>
+        <p className="text-sm text-ink mb-6">
+          {helpClicks
+            ? `${helpClicks.total} WhatsApp presses in total · ${helpClicks.last_7_days} in the last 7 days`
+            : "We couldn't load this count."}
+        </p>
 
         <h2 className="font-display text-lg text-ink">Contacts</h2>
         <p className="text-sm text-slate mb-4">
