@@ -99,6 +99,10 @@ export function AdminDashboard() {
   const [insights, setInsights] = useState<Insights | null>(null);
   const [unfinished, setUnfinished] = useState<Unfinished[] | null>(null);
   const [requests, setRequests] = useState<TutorRequest[] | null>(null);
+  const [clickStats, setClickStats] = useState<{
+    find_tutor: { total: number; week: number; hero: number; header: number };
+    fields: { field: string; total: number; week: number }[];
+  } | null>(null);
   const [signups, setSignups] = useState<{
     total_accounts: number;
     accounts_last_7_days: number;
@@ -142,6 +146,16 @@ export function AdminDashboard() {
         console.error("Insights error:", insightError);
       } else {
         setInsights(insightData as Insights);
+      }
+
+      // "Find a tutor" clicks and how often each field is opened.
+      const { data: clickData, error: clickError } = await supabase.rpc(
+        "admin_click_stats"
+      );
+      if (clickError) {
+        console.error("Click stats error:", clickError);
+      } else {
+        setClickStats(clickData);
       }
 
       // Students who asked to be told when a tutor for their course joins.
@@ -636,6 +650,42 @@ export function AdminDashboard() {
           <p className="text-sm text-red-600 mb-6">
             We couldn&apos;t load the sign-ups.
           </p>
+        )}
+
+        <h2 className="font-display text-lg text-ink">
+          &quot;Find a tutor&quot; clicks
+        </h2>
+        {clickStats ? (
+          <p className="text-sm text-ink mb-6">
+            {clickStats.find_tutor.total} in total ·{" "}
+            {clickStats.find_tutor.week} in the last 7 days (
+            {clickStats.find_tutor.hero} from the home page button,{" "}
+            {clickStats.find_tutor.header} from the header)
+          </p>
+        ) : (
+          <p className="text-sm text-red-600 mb-6">
+            We couldn&apos;t load the clicks.
+          </p>
+        )}
+
+        <h2 className="font-display text-lg text-ink">Fields opened</h2>
+        {!clickStats ? (
+          <p className="text-sm text-red-600 mb-6">
+            We couldn&apos;t load the fields.
+          </p>
+        ) : clickStats.fields.length === 0 ? (
+          <p className="text-sm text-slate mb-6">No fields opened yet.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-stone text-sm mb-6">
+            {clickStats.fields.map((f) => (
+              <li key={f.field} className="py-1.5 flex justify-between gap-4">
+                <span className="text-ink">{f.field}</span>
+                <span className="text-slate shrink-0">
+                  {f.total} · {f.week} this week
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
 
         <h2 className="font-display text-lg text-ink">Contacts</h2>

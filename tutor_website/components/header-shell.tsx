@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { logClick } from "@/lib/log-click";
 import { Pacifico } from "next/font/google";
 import { INSTAGRAM_URL, InstagramIcon } from "@/components/instagram";
 
@@ -44,7 +45,13 @@ export function HeaderShell({
         <span className="md:hidden">Instagram</span>
       </a>
       {!approvedTutorId && showFindTutor && (
-        <Link href="/tutors" onClick={() => setMenuOpen(false)}>
+        <Link
+          href="/tutors"
+          onClick={() => {
+            setMenuOpen(false);
+            logClick("find_tutor", "header");
+          }}
+        >
           Find a tutor
         </Link>
       )}

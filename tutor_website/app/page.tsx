@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ShapeHero from "@/components/kokonutui/shape-hero";
+import { FindTutorButton } from "@/components/find-tutor-button";
 import { HowItWorks } from "@/components/how-it-works";
 import { FaqPreview } from "@/components/faq-preview";
 import { Footer } from "@/components/footer";
@@ -71,12 +72,7 @@ export default async function Home() {
           </div>
         ) : studentsOpen ? (
           <div className="flex gap-4 justify-center text-paper">
-            <Link
-              href="/tutors"
-              className="rounded-full bg-brass text-ink px-10 py-4 text-base font-medium"
-            >
-              Find a tutor
-            </Link>
+            <FindTutorButton className="rounded-full bg-brass text-ink px-10 py-4 text-base font-medium" />
             <Link
               href="/become-a-tutor"
               className="rounded-full border border-brass text-paper px-10 py-4 text-base font-medium"
