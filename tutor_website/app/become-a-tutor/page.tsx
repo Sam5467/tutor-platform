@@ -643,7 +643,7 @@ export default function BecomeATutorPage() {
               Students will contact you on this number, so please make sure it
               is correct and has WhatsApp.
             </p>
-            <dl className="rounded-lg border border-stone p-4 mb-4 text-sm">
+            <dl className="rounded-lg border border-stone p-4 mb-6 text-sm">
               <dt className="text-slate">Full name</dt>
               <dd className="text-ink font-medium mb-3">{studentName}</dd>
               <dt className="text-slate">University</dt>
@@ -651,7 +651,6 @@ export default function BecomeATutorPage() {
               <dt className="text-slate">Phone / WhatsApp number</dt>
               <dd className="text-ink font-medium">+{normalizedPhone}</dd>
             </dl>
-            <FeeNotice state={siteState} className="mb-6" />
             <div className="flex gap-3">
               <button
                 type="button"
