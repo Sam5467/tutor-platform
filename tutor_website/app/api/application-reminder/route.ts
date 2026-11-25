@@ -30,7 +30,15 @@ export async function POST(request: Request) {
   if (!person) return fail("They've already applied, or they're not on the list.");
   if (!person.confirmed) return fail("They haven't confirmed their email yet.");
 
-  const message = buildReminderEmail((person.full_name ?? "").split(" ")[0]);
+  const { data: settings } = await supabase
+    .from("site_settings")
+    .select("students_open, free_until")
+    .maybeSingle();
+
+  const message = buildReminderEmail((person.full_name ?? "").split(" ")[0], {
+    studentsOpen: !!settings?.students_open,
+    freeUntil: settings?.free_until ?? null,
+  });
   const result = await sendEmail({ to: person.email, ...message });
   if (!result.sent) return fail(result.reason);
 

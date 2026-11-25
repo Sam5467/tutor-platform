@@ -1145,6 +1145,8 @@ function UnfinishedPanel({
   onChange: (rows: Unfinished[]) => void;
 }) {
   const [sendingId, setSendingId] = useState<string | null>(null);
+  // The list is long, so it starts folded.
+  const [expanded, setExpanded] = useState(false);
   const [message, setMessage] = useState("");
 
   if (rows === null) {
@@ -1201,6 +1203,45 @@ function UnfinishedPanel({
   const BATCH = 40;
   const batch = notYetReminded.slice(-BATCH);
 
+  // Everyone with a confirmed email, never reminded first, then the ones
+  // reminded longest ago.
+  const everyone = rows
+    .filter((r) => r.confirmed)
+    .sort(
+      (a, b) =>
+        (a.reminded_at ? new Date(a.reminded_at).getTime() : 0) -
+        (b.reminded_at ? new Date(b.reminded_at).getTime() : 0)
+    );
+  const everyoneBatch = everyone.slice(0, BATCH);
+
+  const remindEveryone = async () => {
+    if (
+      !window.confirm(
+        `Send the reminder email to ${everyoneBatch.length} people, including people already reminded?${
+          everyone.length > everyoneBatch.length
+            ? `
+
+That's ${everyoneBatch.length} of ${everyone.length}, to stay under the daily email limit. Press again tomorrow for the rest.`
+            : ""
+        }`
+      )
+    ) {
+      return;
+    }
+    setMessage("");
+    let sent = 0;
+    for (const person of everyoneBatch) {
+      setSendingId(person.student_id);
+      if (!(await send(person))) break;
+      sent += 1;
+    }
+    setSendingId(null);
+    onChange([...rows]);
+    if (sent === everyoneBatch.length) {
+      setMessage(`Reminder sent to ${sent} people.`);
+    }
+  };
+
   const remindAll = async () => {
     if (
       !window.confirm(
@@ -1249,23 +1290,46 @@ That's the first ${batch.length} of ${notYetReminded.length}, to stay under the 
             reminder email links straight to the form.
           </p>
         </div>
-        {notYetReminded.length > 0 && (
-          <button
-            type="button"
-            disabled={sendingId !== null}
-            onClick={remindAll}
-            className="rounded-full bg-ink text-paper px-4 py-2 text-xs shrink-0 disabled:opacity-60"
-          >
-            {notYetReminded.length > BATCH
-              ? `Remind the next ${BATCH} (of ${notYetReminded.length})`
-              : `Remind all not yet reminded (${notYetReminded.length})`}
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2 shrink-0">
+          {notYetReminded.length > 0 && (
+            <button
+              type="button"
+              disabled={sendingId !== null}
+              onClick={remindAll}
+              className="rounded-full bg-ink text-paper px-4 py-2 text-xs disabled:opacity-60"
+            >
+              {notYetReminded.length > BATCH
+                ? `Remind the next ${BATCH} (of ${notYetReminded.length})`
+                : `Remind all not yet reminded (${notYetReminded.length})`}
+            </button>
+          )}
+          {everyone.length > 0 && (
+            <button
+              type="button"
+              disabled={sendingId !== null}
+              onClick={remindEveryone}
+              className="rounded-full border border-ink text-ink px-4 py-2 text-xs disabled:opacity-60"
+            >
+              {everyone.length > BATCH
+                ? `Send to everyone again (next ${BATCH} of ${everyone.length})`
+                : `Send to everyone again (${everyone.length})`}
+            </button>
+          )}
+          {rows.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className="rounded-full border border-stone px-4 py-2 text-xs text-slate"
+            >
+              {expanded ? "Hide list" : `Show list (${rows.length})`}
+            </button>
+          )}
+        </div>
       </div>
 
       {message && <p className="text-sm text-ink mb-3">{message}</p>}
 
-      {rows.length === 0 ? (
+      {!expanded ? null : rows.length === 0 ? (
         <p className="text-sm text-slate">Nobody right now.</p>
       ) : (
         <ul className="flex flex-col divide-y divide-stone text-sm">

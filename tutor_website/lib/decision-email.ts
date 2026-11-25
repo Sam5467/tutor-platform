@@ -105,15 +105,19 @@ export function buildDecisionEmail(input: EmailInput): {
 
 // The shared look of our emails: greeting, paragraphs, an optional button and
 // the sign-off, as HTML and as plain text.
+// A line is plain text, or { highlight } for a bold line in a gold-edged box.
+export type EmailLine = string | { highlight: string };
+
 export function renderEmail(
   name: string,
-  lines: string[],
+  lines: EmailLine[],
   button: { label: string; url: string } | null
 ): { html: string; text: string } {
+  const plain = (l: EmailLine) => (typeof l === "string" ? l : l.highlight);
   const text = [
     `Hi ${name},`,
     "",
-    ...lines.flatMap((l) => [l, ""]),
+    ...lines.flatMap((l) => [plain(l), ""]),
     ...(button ? [`${button.label}: ${button.url}`, ""] : []),
     "The Passalong team",
   ].join("\n");
@@ -124,9 +128,10 @@ export function renderEmail(
     <p style="font-size:22px;font-weight:bold;margin:0 0 24px;">Pass<span style="color:#B08D57;">along</span></p>
     <p style="font-size:16px;margin:0 0 16px;">Hi ${escapeHtml(name)},</p>
     ${lines
-      .map(
-        (l) =>
-          `<p style="font-size:15px;line-height:1.55;margin:0 0 14px;">${escapeHtml(l)}</p>`
+      .map((l) =>
+        typeof l === "string"
+          ? `<p style="font-size:15px;line-height:1.55;margin:0 0 14px;">${escapeHtml(l)}</p>`
+          : `<p style="font-size:16px;line-height:1.5;font-weight:bold;margin:0 0 18px;padding:14px 16px;background:#FFFFFF;border-left:4px solid #B08D57;border-radius:6px;">${escapeHtml(l.highlight)}</p>`
       )
       .join("\n    ")}
     ${
