@@ -53,7 +53,6 @@ export default function ProjectHelpPage() {
           Message us on WhatsApp and we&apos;ll get back to you quickly.
         </p>
         <ProjectHelpButton />
-        <p className="text-xs text-slate mt-3">+961 76 442 596</p>
       </div>
     </div>
   );
