@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { universityLabel } from "@/lib/universities";
-import type { Tutor } from "@/lib/tutors";
+import { tutorPath, type Tutor } from "@/lib/tutors";
 import { fieldCardColors } from "@/lib/field-card-colors";
 import { sessionModeLabel } from "@/lib/session-modes";
 
@@ -9,6 +9,7 @@ type TutorCardProps = Tutor & { className?: string };
 
 export function TutorCard({
   id,
+  slug,
   name,
   university,
   sessionMode,
@@ -34,7 +35,7 @@ export function TutorCard({
 
   return (
     <Link
-      href={`/tutors/${id}`}
+      href={tutorPath({ id, slug })}
       className={`${className || "flex"} flex-col gap-2.5 rounded-lg p-4 hover:opacity-90 transition-opacity ${colors.bg} ${colors.text}`}
     >
       <div className="flex items-center gap-3">

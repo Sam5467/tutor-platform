@@ -21,7 +21,12 @@ To do all three: www.passalonglb.com → Tutor log in → My tutor card → Edit
 
 Your card: {link}`;
 
-type Recipient = { id: string; full_name: string; phone: string | null };
+type Recipient = {
+  id: string;
+  slug: string | null;
+  full_name: string;
+  phone: string | null;
+};
 
 // One message written once, sent to each approved tutor in one tap: the
 // WhatsApp chat opens with the message already typed, with their first name
@@ -68,7 +73,7 @@ export function MessageAllTutors({ tutors }: { tutors: Recipient[] }) {
   const fill = (t: Recipient) =>
     message
       .replaceAll("{name}", t.full_name.trim().split(" ")[0] || "there")
-      .replaceAll("{link}", `${SITE_URL}/tutors/${t.id}`);
+      .replaceAll("{link}", `${SITE_URL}/tutors/${t.slug || t.id}`);
 
   const sentCount = tutors.filter((t) => sent.includes(t.id)).length;
 

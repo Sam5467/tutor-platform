@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { TUTOR_COLUMNS, rowToTutor, type TutorRow } from "@/lib/tutors";
+import {
+  TUTOR_COLUMNS,
+  rowToTutor,
+  tutorPath,
+  type TutorRow,
+} from "@/lib/tutors";
 import { ContactButton } from "@/components/contact-button";
 import { BackButton } from "@/components/back-button";
 import { ReviewsSection } from "@/components/reviews-section";
@@ -30,14 +35,21 @@ export default async function TutorProfilePage({ params }: PageProps) {
 
   const supabase = await createClient();
 
+  // The address is either the tutor's name link ("maria-rahy") or, for older
+  // links, their id. Old links move to the name link.
+  const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   const { data } = await supabase
     .from("tutors")
     .select(`${TUTOR_COLUMNS}, student_id, paid_until`)
-    .eq("id", id)
+    .eq(isId ? "id" : "slug", isId ? id : decodeURIComponent(id).toLowerCase())
     .maybeSingle();
 
   if (!data) {
     notFound();
+  }
+
+  if (isId && (data as TutorRow).slug) {
+    permanentRedirect(`/tutors/${(data as TutorRow).slug}`);
   }
 
   const tutor = rowToTutor(data as TutorRow);
@@ -174,7 +186,7 @@ function TutorProfile({
           )}
 
           {isOwnProfile && tutor.status === "approved" && (
-            <ReviewLinkBox tutorId={tutor.id} />
+            <ReviewLinkBox path={tutorPath(tutor)} />
           )}
         </div>
       </div>

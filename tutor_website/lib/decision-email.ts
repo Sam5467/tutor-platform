@@ -10,6 +10,8 @@ type EmailInput = {
   decision: Decision;
   firstName: string;
   tutorId: string;
+  // The tutor's name link (e.g. "maria-rahy"), if they have one.
+  tutorSlug?: string | null;
   studentsOpen: boolean;
   // The date the free period ends, if the admin chose one.
   freeUntil?: string | null;
@@ -78,7 +80,10 @@ export function buildDecisionEmail(input: EmailInput): {
       ...approvedLines(input),
       "You can see your tutor card and edit your courses, price and bio at any time.",
     ];
-    button = { label: "See my tutor card", url: `${SITE_URL}/tutors/${input.tutorId}` };
+    button = {
+      label: "See my tutor card",
+      url: `${SITE_URL}/tutors/${input.tutorSlug || input.tutorId}`,
+    };
   } else if (input.decision === "unlisted") {
     subject = "Your Passalong listing has been removed";
     lines = [

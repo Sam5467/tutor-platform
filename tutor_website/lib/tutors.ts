@@ -2,6 +2,7 @@ import type { SessionMode } from "@/lib/session-modes";
 
 export type TutorRow = {
   id: string;
+  slug: string | null;
   full_name: string;
   university: string;
   session_mode: SessionMode;
@@ -19,6 +20,8 @@ export type TutorRow = {
 
 export type Tutor = {
   id: string;
+  // The nice link part, e.g. "maria-rahy" (demo tutors have none).
+  slug?: string | null;
   name: string;
   university: string;
   sessionMode: SessionMode;
@@ -36,7 +39,7 @@ export type Tutor = {
 };
 
 export const TUTOR_COLUMNS =
-  "id, full_name, university, session_mode, faculty, major, year, courses, price, bio, status, is_paid, profile_picture_path, created_at";
+  "id, slug, full_name, university, session_mode, faculty, major, year, courses, price, bio, status, is_paid, profile_picture_path, created_at";
 
 export function rowToTutor(row: TutorRow): Tutor {
   const photoUrl = row.profile_picture_path
@@ -45,6 +48,7 @@ export function rowToTutor(row: TutorRow): Tutor {
 
   return {
     id: row.id,
+    slug: row.slug,
     name: row.full_name,
     university: row.university,
     sessionMode: row.session_mode,
@@ -64,4 +68,9 @@ export function rowToTutor(row: TutorRow): Tutor {
     bio: row.bio ?? "",
     status: row.status,
   };
+}
+
+// The address of a tutor's page: their name link when they have one.
+export function tutorPath(tutor: { id: string; slug?: string | null }): string {
+  return `/tutors/${tutor.slug || tutor.id}`;
 }

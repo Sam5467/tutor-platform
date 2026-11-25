@@ -6,9 +6,9 @@ const SITE_URL = "https://www.passalonglb.com";
 
 // Shown to a tutor on their own page: a link they send to students after a
 // session, which opens straight on the review form.
-export function ReviewLinkBox({ tutorId }: { tutorId: string }) {
+export function ReviewLinkBox({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
-  const link = `${SITE_URL}/tutors/${tutorId}#review`;
+  const link = `${SITE_URL}${path}#review`;
   const whatsappText = encodeURIComponent(
     `Thanks for the session! If it helped, could you leave me a quick review on Passalong? It takes 30 seconds: ${link}`
   );

@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
   const { data: tutor } = await supabase
     .from("tutors")
-    .select("id, full_name, status, paid_until")
+    .select("id, slug, full_name, status, paid_until")
     .eq("id", tutorId)
     .maybeSingle();
   if (!tutor || tutor.status === "pending") return fail("Nothing to tell this tutor.");
@@ -57,6 +57,7 @@ export async function POST(request: Request) {
     decision,
     firstName: (tutor.full_name ?? "").split(" ")[0],
     tutorId,
+    tutorSlug: tutor.slug,
     studentsOpen: !!settings?.students_open,
     freeUntil: settings?.free_until ?? null,
     paidUntil: tutor.paid_until,
