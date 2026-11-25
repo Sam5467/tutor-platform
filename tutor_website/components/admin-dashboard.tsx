@@ -9,6 +9,7 @@ import { Bar } from "@/components/charts/bar";
 import { Grid } from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip";
 import { AdminEditTutor } from "@/components/admin-edit-tutor";
+import { MessageAllTutors } from "@/components/message-all-tutors";
 import type { SessionMode } from "@/lib/session-modes";
 
 type Status = "pending" | "approved" | "rejected";
@@ -631,6 +632,10 @@ export function AdminDashboard() {
           </button>
         </div>
       </div>
+
+      <MessageAllTutors
+        tutors={tutors.filter((t) => t.status === "approved")}
+      />
 
       <RequestsPanel rows={requests} onChange={setRequests} />
 

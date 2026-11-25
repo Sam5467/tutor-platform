@@ -22,7 +22,7 @@ const faqs = [
   {
     question: "Can I become a tutor?",
     answer:
-      "If you're a senior student who has already passed the course, yes. Submit your info and transcript for review.",
+      "As long as you already passed the course you want to tutor, yes. Submit your info and transcript for review.",
   },
 ];
 
