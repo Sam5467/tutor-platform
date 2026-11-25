@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { FieldPicker } from "@/components/field-picker";
 import { MajorPicker } from "@/components/major-picker";
 import { TutorGrid } from "@/components/tutor-grid";
+import { MissingCourse } from "@/components/missing-course";
 import { PickerSkeleton, TutorGridSkeleton } from "@/components/skeleton";
 import { createClient } from "@/lib/supabase/client";
 import { dbErrorMessage } from "@/lib/errors";
@@ -252,6 +253,14 @@ export function TutorsBrowser() {
             className="w-full border border-stone rounded-full py-3 pl-10 pr-4 text-base text-ink bg-paper"
           />
         </label>
+        {/* Hidden when nothing was found: that page already shows the form. */}
+        {resultCount !== 0 && (
+          <MissingCourse
+            key={`${field}-${university}`}
+            field={field}
+            university={university === "all" ? null : university}
+          />
+        )}
         {fetchError && (
           <p className="text-sm text-red-600 text-center pt-4">{fetchError}</p>
         )}
