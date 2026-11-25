@@ -10,6 +10,7 @@ import { Grid } from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip";
 import { AdminEditTutor } from "@/components/admin-edit-tutor";
 import { MessageAllTutors } from "@/components/message-all-tutors";
+import { ProjectTutorsPanel } from "@/components/project-tutors-panel";
 import type { SessionMode } from "@/lib/session-modes";
 
 type Status = "pending" | "approved" | "rejected";
@@ -640,6 +641,10 @@ export function AdminDashboard() {
       />
 
       <RequestsPanel rows={requests} onChange={setRequests} />
+
+      <ProjectTutorsPanel
+        tutors={tutors.filter((t) => t.status === "approved")}
+      />
 
       <InsightsPanel insights={insights} />
 
