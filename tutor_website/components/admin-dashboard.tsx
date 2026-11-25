@@ -1147,6 +1147,8 @@ function UnfinishedPanel({
   const [sendingId, setSendingId] = useState<string | null>(null);
   // The list is long, so it starts folded.
   const [expanded, setExpanded] = useState(false);
+  // "Now", taken once when the page loads, for the 3-day check.
+  const [sendingCheckTime] = useState(() => Date.now());
   const [message, setMessage] = useState("");
 
   if (rows === null) {
@@ -1203,10 +1205,17 @@ function UnfinishedPanel({
   const BATCH = 40;
   const batch = notYetReminded.slice(-BATCH);
 
-  // Everyone with a confirmed email, never reminded first, then the ones
-  // reminded longest ago.
+  // Everyone with a confirmed email who wasn't reminded in the last 3 days
+  // (so pressing again never emails the same person twice), never reminded
+  // first, then the ones reminded longest ago.
+  const recentLimit = new Date(sendingCheckTime);
+  recentLimit.setDate(recentLimit.getDate() - 3);
   const everyone = rows
-    .filter((r) => r.confirmed)
+    .filter(
+      (r) =>
+        r.confirmed &&
+        (!r.reminded_at || new Date(r.reminded_at) < recentLimit)
+    )
     .sort(
       (a, b) =>
         (a.reminded_at ? new Date(a.reminded_at).getTime() : 0) -
@@ -1217,7 +1226,7 @@ function UnfinishedPanel({
   const remindEveryone = async () => {
     if (
       !window.confirm(
-        `Send the reminder email to ${everyoneBatch.length} people, including people already reminded?${
+        `Send the reminder email to ${everyoneBatch.length} people who weren't reminded in the last 3 days?${
           everyone.length > everyoneBatch.length
             ? `
 
@@ -1311,8 +1320,8 @@ That's the first ${batch.length} of ${notYetReminded.length}, to stay under the 
               className="rounded-full border border-ink text-ink px-4 py-2 text-xs disabled:opacity-60"
             >
               {everyone.length > BATCH
-                ? `Send to everyone again (next ${BATCH} of ${everyone.length})`
-                : `Send to everyone again (${everyone.length})`}
+                ? `Send to everyone again (next ${BATCH} of ${everyone.length} left)`
+                : `Send to everyone again (${everyone.length} left)`}
             </button>
           )}
           {rows.length > 0 && (
