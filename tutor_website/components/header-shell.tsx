@@ -55,6 +55,9 @@ export function HeaderShell({
           Find a tutor
         </Link>
       )}
+      <Link href="/project-help" onClick={() => setMenuOpen(false)}>
+        Project / Thesis help
+      </Link>
       {approvedTutorId ? (
         <Link
           href={`/tutors/${approvedTutorId}`}
